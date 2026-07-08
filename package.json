@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:gcp": "bash scripts/google-cloud/provision-and-deploy.sh",
+    "setup:gcp-oidc": "bash scripts/google-cloud/setup-github-oidc.sh"
   },
   "dependencies": {
     "lucide-react": "^1.23.0",

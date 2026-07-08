@@ -46,3 +46,27 @@ ueber `DATABASE_URL` und `GOOGLE_CLOUD_SQL_INSTANCE` konfigurierbar.
 Referenz: Google dokumentiert fuer Cloud Run den direkten Anschluss an Cloud SQL
 for PostgreSQL inklusive `--add-cloudsql-instances` und Unix-Socket-Pfad:
 https://docs.cloud.google.com/sql/docs/postgres/connect-run
+
+## Automatisierter Pfad
+
+Nach Google-Login:
+
+```bash
+export GOOGLE_CLOUD_PROJECT_ID=<project-id>
+npm run deploy:gcp
+```
+
+Das Skript `scripts/google-cloud/provision-and-deploy.sh` erstellt Artifact
+Registry, Cloud SQL, Secret Manager, den Cloud-Run-Service-Account, importiert
+die Migration ueber Cloud Storage und deployed den Container mit
+`--add-cloudsql-instances`.
+
+Fuer GitHub Actions:
+
+```bash
+export GOOGLE_CLOUD_PROJECT_ID=<project-id>
+npm run setup:gcp-oidc
+```
+
+Der Workflow `.github/workflows/deploy-google-cloud.yml` nutzt Workload Identity
+Federation, also keine langfristigen Service-Account-Keys.

@@ -1,0 +1,53 @@
+name: Deploy to Google Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+  REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'europe-west3' }}
+  SERVICE_NAME: ${{ vars.CLOUD_RUN_SERVICE || 'kleinkunst-dashboard' }}
+  ARTIFACT_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'kleinkunst' }}
+  CLOUD_SQL_INSTANCE: ${{ vars.GOOGLE_CLOUD_SQL_INSTANCE }}
+  CLOUD_SQL_DATABASE: ${{ vars.GOOGLE_CLOUD_SQL_DATABASE || 'kleinkunst' }}
+  CLOUD_SQL_USER: ${{ vars.GOOGLE_CLOUD_SQL_USER || 'kleinkunst_app' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push container
+        run: |
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/${SERVICE_NAME}:${GITHUB_SHA::7}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+          gcloud builds submit --tag "${IMAGE_URI}" .
+
+      - name: Deploy Cloud Run
+        run: |
+          gcloud run deploy "${SERVICE_NAME}" \
+            --image="${IMAGE_URI}" \
+            --platform=managed \
+            --region="${REGION}" \
+            --allow-unauthenticated \
+            --add-cloudsql-instances="${CLOUD_SQL_INSTANCE}" \
+            --set-env-vars="BACKEND_PROVIDER=google-cloud,GOOGLE_CLOUD_PROJECT_ID=${PROJECT_ID},GOOGLE_CLOUD_REGION=${REGION},GOOGLE_CLOUD_SQL_INSTANCE=${CLOUD_SQL_INSTANCE},GOOGLE_CLOUD_SQL_DATABASE=${CLOUD_SQL_DATABASE},GOOGLE_CLOUD_SQL_USER=${CLOUD_SQL_USER},NEXT_PUBLIC_APP_NAME=Kleinkunst Dashboard" \
+            --set-secrets="DATABASE_URL=kleinkunst-database-url:latest"

@@ -55,6 +55,14 @@ Build:
 npm run build
 ```
 
+Google-Cloud-Provisionierung und Deploy:
+
+```bash
+export GOOGLE_CLOUD_PROJECT_ID=<project-id>
+gcloud auth login
+npm run deploy:gcp
+```
+
 ## Environment
 
 Kopiere `.env.example` nach `.env.local` und fuelle die passenden Provider-Werte aus. `BACKEND_PROVIDER=google-cloud` ist der vorbereitete Default.
