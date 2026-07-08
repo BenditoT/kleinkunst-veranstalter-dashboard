@@ -1,11 +1,22 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Save } from "lucide-react";
+import { FormEvent, useMemo, useState } from "react";
 
 import { createEventSlug } from "@/lib/domain/events";
 import { sampleArtists, sampleVenues } from "@/lib/domain/sample-data";
 
 export function EventFormScreen() {
-  const previewSlug = createEventSlug("Neue Veranstaltung", "2026-08-01");
+  const [title, setTitle] = useState("Neue Veranstaltung");
+  const [date, setDate] = useState("2026-08-01");
+  const [savedMessage, setSavedMessage] = useState("");
+  const previewSlug = useMemo(() => createEventSlug(title || "Neue Veranstaltung", date || "2026-08-01"), [date, title]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSavedMessage(`Entwurf "${title || "Neue Veranstaltung"}" wurde lokal fuer die Demo vorbereitet.`);
+  }
 
   return (
     <div className="mx-auto grid max-w-[1100px] gap-5">
@@ -24,11 +35,11 @@ export function EventFormScreen() {
           </p>
         </div>
 
-        <form className="mt-6 grid gap-5">
+        <form className="mt-6 grid gap-5" onSubmit={handleSubmit}>
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Titel" name="title" placeholder="Jazz im Hof" />
+            <FormField label="Titel" name="title" value={title} onChange={setTitle} placeholder="Jazz im Hof" />
             <FormField label="Untertitel" name="subtitle" placeholder="Sommerabend mit Mara Sol" />
-            <FormField label="Datum" name="date" type="date" />
+            <FormField label="Datum" name="date" type="date" value={date} onChange={setDate} />
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Beginn" name="startTime" type="time" />
               <FormField label="Ende" name="endTime" type="time" />
@@ -66,6 +77,13 @@ export function EventFormScreen() {
             Vorschau-Slug: <span className="font-semibold text-slate-950">{previewSlug}</span>
           </div>
 
+          {savedMessage ? (
+            <p role="status" className="rounded-md bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">
+              <CheckCircle2 className="mr-2 inline h-4 w-4 align-[-3px]" aria-hidden="true" />
+              {savedMessage}
+            </p>
+          ) : null}
+
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Link
               href="/veranstaltungen"
@@ -74,7 +92,7 @@ export function EventFormScreen() {
               Abbrechen
             </Link>
             <button
-              type="button"
+              type="submit"
               className="flex h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white"
             >
               <Save className="h-4 w-4" aria-hidden="true" />
@@ -92,11 +110,15 @@ function FormField({
   name,
   type = "text",
   placeholder,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <label className="block">
@@ -105,6 +127,8 @@ function FormField({
         name={name}
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
         className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
       />
     </label>

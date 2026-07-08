@@ -1,22 +1,35 @@
+"use client";
+
 import Link from "next/link";
 import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { detectVenueConflicts } from "@/lib/domain/events";
 import { formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
 
-const weekDays = [
-  { label: "Mi", date: "2026-07-08" },
-  { label: "Do", date: "2026-07-09" },
-  { label: "Fr", date: "2026-07-10" },
-  { label: "Sa", date: "2026-07-11" },
-  { label: "So", date: "2026-07-12" },
-  { label: "Mo", date: "2026-07-13" },
-  { label: "Di", date: "2026-07-14" },
-];
+const baseWeekStart = new Date(2026, 6, 8);
+const weekdayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 export function CalendarWorkspace() {
+  const [weekOffset, setWeekOffset] = useState(0);
   const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45 });
+  const weekDays = useMemo(() => {
+    const start = addDays(baseWeekStart, weekOffset * 7);
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = addDays(start, index);
+
+      return {
+        label: weekdayLabels[date.getDay()],
+        date: formatIsoDate(date),
+      };
+    });
+  }, [weekOffset]);
+  const weekEventCount = weekDays.reduce(
+    (count, day) => count + sampleEvents.filter((event) => event.date === day.date).length,
+    0,
+  );
 
   return (
     <div className="mx-auto grid max-w-[1500px] gap-5">
@@ -24,19 +37,33 @@ export function CalendarWorkspace() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-medium text-slate-500">Multi-Venue-Kalender</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Woche ab 08. Juli 2026</h2>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Woche ab {formatDate(weekDays[0].date)}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
               Farbcodierte Spielorte, schnelle Konfliktpruefung und Pufferzeit fuer Aufbau, Soundcheck und Abbau.
             </p>
           </div>
           <div className="flex gap-2">
-            <button type="button" className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700">
+            <button
+              type="button"
+              onClick={() => setWeekOffset((value) => value - 1)}
+              className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+              aria-label="Vorherige Woche"
+            >
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </button>
-            <button type="button" className="h-10 rounded-md border border-slate-200 px-4 text-sm font-semibold text-slate-700">
+            <button
+              type="button"
+              onClick={() => setWeekOffset(0)}
+              className="h-10 rounded-md border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
               Heute
             </button>
-            <button type="button" className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700">
+            <button
+              type="button"
+              onClick={() => setWeekOffset((value) => value + 1)}
+              className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+              aria-label="Naechste Woche"
+            >
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
@@ -125,7 +152,7 @@ export function CalendarWorkspace() {
               <StatusRow label="Pufferzeit" value="45 Minuten" />
               <StatusRow label="Ansicht" value="Woche" />
               <StatusRow label="Aktive Spielorte" value={String(sampleVenues.length)} />
-              <StatusRow label="Events diese Woche" value="3" />
+              <StatusRow label="Events diese Woche" value={String(weekEventCount)} />
             </div>
           </section>
 
@@ -157,6 +184,20 @@ export function CalendarWorkspace() {
       </section>
     </div>
   );
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function StatusRow({ label, value }: { label: string; value: string }) {

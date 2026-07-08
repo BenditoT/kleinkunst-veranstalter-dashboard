@@ -31,4 +31,17 @@ describe("GitHub Pages deployment", () => {
     expect(workflow).toContain("actions/deploy-pages");
     expect(workflow).toContain("NEXT_PUBLIC_DEMO_PIN: \"69198\"");
   });
+
+  it("pre-renders dynamic demo detail pages for static GitHub Pages hosting", () => {
+    const artistDetailPage = read("app/kuenstler/[id]/page.tsx");
+    const venueDetailPage = read("app/spielorte/[id]/page.tsx");
+    const eventDetailPage = read("app/veranstaltungen/[slug]/page.tsx");
+
+    expect(artistDetailPage).toContain("generateStaticParams");
+    expect(artistDetailPage).toContain("sampleArtists.map");
+    expect(venueDetailPage).toContain("generateStaticParams");
+    expect(venueDetailPage).toContain("sampleVenues.map");
+    expect(eventDetailPage).toContain("generateStaticParams");
+    expect(eventDetailPage).toContain("sampleEvents.map");
+  });
 });

@@ -9,6 +9,7 @@ import {
   Ticket,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
 
 import { calculateDashboardMetrics, findGemaDeadlines } from "@/lib/domain/dashboard";
 import { formatCurrency, formatDate, formatPercent, formatShortDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
@@ -180,7 +181,7 @@ function Sparkline({ tone }: { tone: "teal" | "emerald" | "amber" | "rose" }) {
 function UpcomingEvents({ events }: { events: Event[] }) {
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Naechste Veranstaltungen" action="Alle anzeigen" />
+      <SectionHeader title="Naechste Veranstaltungen" action="Alle anzeigen" href="/veranstaltungen" />
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead>
@@ -196,13 +197,13 @@ function UpcomingEvents({ events }: { events: Event[] }) {
             {events.map((event) => (
               <tr key={event.id} className="border-b border-slate-100 last:border-0">
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/veranstaltungen/${event.slug}`} className="flex items-center gap-3 rounded-md transition hover:text-teal-700">
                     <EventPoster title={event.title} />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-950">{event.title}</p>
                       <p className="mt-1 truncate text-xs text-slate-500">{getArtistNames(event.artistIds)}</p>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-5 py-4 text-slate-600">
                   {formatShortDate(event.date)} · {event.startTime}
@@ -238,7 +239,7 @@ function UpcomingEvents({ events }: { events: Event[] }) {
 function OpenTasks({ tasks }: { tasks: Array<{ id: string; title: string; dueDate: string; category: string; assignee: string }> }) {
   return (
     <section className="min-w-0 rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Offene Aufgaben" action="Checkliste" />
+      <SectionHeader title="Offene Aufgaben" action="Checkliste" href="/veranstaltungen" />
       <div className="space-y-2 p-4">
         {tasks.map((task) => (
           <div key={task.id} className="flex items-start gap-3 rounded-md border border-slate-100 p-3">
@@ -261,7 +262,7 @@ function CalendarPreview({ events }: { events: Event[] }) {
 
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Multi-Venue-Kalender" action="Kalender oeffnen" />
+      <SectionHeader title="Multi-Venue-Kalender" action="Kalender oeffnen" href="/kalender" />
       <div className="grid min-w-0 grid-cols-7 border-t border-slate-200">
         {days.map((day) => (
           <div key={day} className="border-r border-slate-100 p-3 last:border-r-0">
@@ -295,7 +296,7 @@ function CalendarPreview({ events }: { events: Event[] }) {
 function GemaPanel({ deadlines }: { deadlines: Array<{ eventId: string; eventTitle: string; daysUntilDue: number; status: string }> }) {
   return (
     <section className="min-w-0 rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="GEMA faellig" action="Meldungen" />
+      <SectionHeader title="GEMA faellig" action="Meldungen" href="/gema" />
       <div className="space-y-2 p-4">
         {deadlines.map((deadline) => (
           <div key={deadline.eventId} className="flex items-center gap-3 rounded-md bg-amber-50 p-3 text-amber-950">
@@ -318,7 +319,7 @@ function VenueOccupancy({
 }) {
   return (
     <section className="min-w-0 rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Auslastung" action="Spielorte" />
+      <SectionHeader title="Auslastung" action="Spielorte" href="/spielorte" />
       <div className="space-y-4 p-4">
         {venues.map((venue) => (
           <div key={venue.venueId}>
@@ -339,14 +340,14 @@ function VenueOccupancy({
   );
 }
 
-function SectionHeader({ title, action }: { title: string; action: string }) {
+function SectionHeader({ title, action, href }: { title: string; action: string; href: string }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
       <h3 className="text-base font-semibold text-slate-950">{title}</h3>
-      <button type="button" className="flex items-center gap-1 text-sm font-semibold text-teal-700">
+      <Link href={href} className="flex items-center gap-1 text-sm font-semibold text-teal-700">
         {action}
         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-      </button>
+      </Link>
     </div>
   );
 }

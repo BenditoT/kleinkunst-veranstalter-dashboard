@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ChevronsLeft, Database, Landmark } from "lucide-react";
+import { Database, Landmark } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { navigationItems, type ModuleId } from "@/lib/domain/module-content";
 
+import { SidebarCollapseButton, SidebarRestoreButton } from "./sidebar-collapse-controls";
 import { Topbar } from "./topbar";
 
 type AppShellProps = {
@@ -14,7 +15,8 @@ type AppShellProps = {
 export function AppShell({ activeItem, children }: AppShellProps) {
   return (
     <div className="min-h-screen text-slate-950">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[268px] border-r border-slate-900/80 bg-slate-950 text-white shadow-2xl lg:flex lg:flex-col">
+      <SidebarRestoreButton />
+      <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[268px] border-r border-slate-900/80 bg-slate-950 text-white shadow-2xl lg:flex lg:flex-col">
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
           <div className="grid h-11 w-11 place-items-center rounded-md border border-teal-300/30 bg-teal-400/20 text-teal-100">
             <Landmark className="h-5 w-5" aria-hidden="true" />
@@ -62,17 +64,11 @@ export function AppShell({ activeItem, children }: AppShellProps) {
               <p className="mt-1 text-xs font-semibold text-teal-300">Betriebsbereit vorbereitet</p>
             </div>
           </div>
-          <button
-            type="button"
-            className="mt-4 flex h-10 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
-          >
-            <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
-            Menue einklappen
-          </button>
+          <SidebarCollapseButton />
         </div>
       </aside>
 
-      <div className="lg:pl-[268px]">
+      <div className="app-content lg:pl-[268px]">
         <Topbar activeItem={activeItem} />
         <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <nav className="flex gap-2 overflow-x-auto" aria-label="Mobile Navigation">

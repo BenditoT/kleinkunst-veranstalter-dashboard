@@ -115,7 +115,7 @@ export function groupGlobalSearchResults({
         id: event.id,
         label: event.title,
         description: event.subtitle,
-        href: `/veranstaltungen/${event.id}`,
+        href: `/veranstaltungen/${event.slug}`,
       })),
     artists: artists
       .filter((artist) =>

@@ -1,7 +1,9 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 
 import { moduleSummaries, type ModuleId } from "@/lib/domain/module-content";
 import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
+import { DemoActionButton } from "@/components/ui/demo-action-button";
 
 type ModuleOverviewProps = {
   moduleId: Exclude<ModuleId, "dashboard">;
@@ -40,13 +42,12 @@ export function ModuleOverview({ moduleId }: ModuleOverviewProps) {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-950">Primaere Aktion</p>
-            <button
-              type="button"
-              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white"
-            >
-              {summary.primaryAction}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
+            <div className="mt-3">
+              <DemoActionButton
+                label={summary.primaryAction}
+                message={`${summary.primaryAction} wurde fuer die Demo vorgemerkt. Der produktive Schreibfluss laeuft spaeter ueber den Backend-Adapter.`}
+              />
+            </div>
             <p className="mt-4 text-xs leading-5 text-slate-500">
               Diese Ansicht ist provider-neutral. Daten kommen spaeter ueber den Backend-Adapter aus Cloud SQL,
               Supabase oder Self-hosted Postgres.
@@ -91,7 +92,11 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
         </div>
         <div className="space-y-3 p-4">
           {sampleVenues.map((venue) => (
-            <div key={venue.id} className="rounded-md border border-slate-100 p-3">
+            <Link
+              key={venue.id}
+              href={`/spielorte/${venue.id}`}
+              className="block rounded-md border border-slate-100 p-3 transition hover:border-teal-200 hover:bg-slate-50"
+            >
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: venue.color }} />
                 <p className="font-medium text-slate-950">{venue.name}</p>
@@ -99,7 +104,7 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
               <p className="mt-1 text-sm text-slate-500">
                 {venue.city} · {venue.capacity} Plaetze · {venue.type}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </aside>
@@ -113,12 +118,16 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
       </div>
       <div className="space-y-3 p-4">
         {sampleEvents.slice(0, 4).map((event) => (
-          <div key={event.id} className="rounded-md border border-slate-100 p-3">
+          <Link
+            key={event.id}
+            href={`/veranstaltungen/${event.slug}`}
+            className="block rounded-md border border-slate-100 p-3 transition hover:border-teal-200 hover:bg-slate-50"
+          >
             <p className="font-medium text-slate-950">{event.title}</p>
             <p className="mt-1 text-sm text-slate-500">
               {event.date} · {event.startTime}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
     </aside>

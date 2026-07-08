@@ -1,4 +1,5 @@
 import { AuthCard, AuthInput, AuthLink, AuthSubmit } from "@/components/auth/auth-card";
+import { DemoAuthForm } from "@/components/auth/demo-auth-form";
 
 export default function RegisterPage() {
   return (
@@ -11,13 +12,13 @@ export default function RegisterPage() {
         </>
       }
     >
-      <form className="grid gap-4">
+      <DemoAuthForm successMessage="Registrierung wurde in der Demo vorgemerkt. Die produktive Anlage schreibt spaeter in Cloud SQL.">
         <AuthInput label="Organisationsname" name="organizationName" />
         <AuthInput label="Vorname" name="firstName" />
         <AuthInput label="E-Mail" name="email" type="email" />
         <AuthInput label="Passwort" name="password" type="password" />
         <AuthSubmit>Registrierung vorbereiten</AuthSubmit>
-      </form>
+      </DemoAuthForm>
     </AuthCard>
   );
 }

@@ -1,4 +1,5 @@
 import { AuthCard, AuthInput, AuthLink, AuthSubmit } from "@/components/auth/auth-card";
+import { DemoAuthForm } from "@/components/auth/demo-auth-form";
 
 export default function ForgotPasswordPage() {
   return (
@@ -11,10 +12,10 @@ export default function ForgotPasswordPage() {
         </>
       }
     >
-      <form className="grid gap-4">
+      <DemoAuthForm successMessage="Reset-Link wurde in der Demo simuliert. Produktiv versendet der Auth-Adapter die E-Mail.">
         <AuthInput label="E-Mail" name="email" type="email" />
         <AuthSubmit>Reset-Link senden</AuthSubmit>
-      </form>
+      </DemoAuthForm>
     </AuthCard>
   );
 }

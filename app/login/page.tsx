@@ -1,4 +1,5 @@
 import { AuthCard, AuthInput, AuthLink, AuthSubmit } from "@/components/auth/auth-card";
+import { DemoAuthForm } from "@/components/auth/demo-auth-form";
 
 export default function LoginPage() {
   return (
@@ -11,7 +12,7 @@ export default function LoginPage() {
         </>
       }
     >
-      <form className="grid gap-4">
+      <DemoAuthForm successMessage="Login wurde in der Demo vorbereitet. Produktiv nutzt diese App spaeter Identity Platform oder den gewaehlten Auth-Adapter.">
         <AuthInput label="E-Mail" name="email" type="email" />
         <AuthInput label="Passwort" name="password" type="password" />
         <div className="flex items-center justify-between text-sm">
@@ -22,7 +23,7 @@ export default function LoginPage() {
           <AuthLink href="/forgot-password">Passwort vergessen</AuthLink>
         </div>
         <AuthSubmit>Einloggen</AuthSubmit>
-      </form>
+      </DemoAuthForm>
     </AuthCard>
   );
 }

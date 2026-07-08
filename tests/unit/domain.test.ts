@@ -56,5 +56,8 @@ describe("dashboard domain helpers", () => {
     expect(results.events.map((result) => result.label)).toEqual(["Jazz im Hof"]);
     expect(results.artists.map((result) => result.label)).toEqual(["Mara Sol"]);
     expect(results.venues.map((result) => result.label)).toEqual(["Kupfersaal Leipzig"]);
+    expect(results.events[0].href).toBe("/veranstaltungen/2026-07-09-jazz-im-hof");
+    expect(results.artists[0].href).toBe("/kuenstler/artist-mara-sol");
+    expect(results.venues[0].href).toBe("/spielorte/venue-kupfersaal");
   });
 });

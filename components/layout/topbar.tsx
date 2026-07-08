@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, CalendarDays, Command, Landmark, Menu, Moon, Plus, Search, Sun } from "lucide-react";
+import { Bell, CalendarDays, Command, Landmark, Menu, Moon, Plus, Search, Sun, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { groupGlobalSearchResults } from "@/lib/domain/dashboard";
@@ -15,6 +15,8 @@ type TopbarProps = {
 export function Topbar({ activeItem }: TopbarProps) {
   const [query, setQuery] = useState("");
   const [dark, setDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const activeLabel = navigationItems.find((item) => item.id === activeItem)?.label ?? "Uebersicht";
 
   useEffect(() => {
@@ -40,10 +42,12 @@ export function Topbar({ activeItem }: TopbarProps) {
       <div className="flex h-20 items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           type="button"
+          onClick={() => setMobileMenuOpen((value) => !value)}
           className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700 lg:hidden"
-          aria-label="Navigation oeffnen"
+          aria-label={mobileMenuOpen ? "Navigation schliessen" : "Navigation oeffnen"}
+          aria-expanded={mobileMenuOpen}
         >
-          <Menu className="h-5 w-5" aria-hidden="true" />
+          {mobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
         </button>
 
         <div className="w-36 shrink-0 sm:w-44">
@@ -78,21 +82,21 @@ export function Topbar({ activeItem }: TopbarProps) {
           ) : null}
         </div>
 
-        <button
-          type="button"
+        <Link
+          href="/spielorte"
           className="hidden h-11 shrink-0 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 xl:flex"
         >
           <Landmark className="h-4 w-4 text-slate-500" aria-hidden="true" />
           <span className="whitespace-nowrap">Alle Spielorte</span>
-        </button>
+        </Link>
 
-        <button
-          type="button"
+        <Link
+          href="/kalender"
           className="hidden h-11 w-11 shrink-0 place-items-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 sm:grid"
           aria-label="Kalender oeffnen"
         >
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Link>
 
         <Link
           href="/veranstaltungen/neu"
@@ -113,14 +117,88 @@ export function Topbar({ activeItem }: TopbarProps) {
 
         <button
           type="button"
+          onClick={() => setNotificationsOpen((value) => !value)}
           className="relative grid h-11 w-11 place-items-center rounded-md border border-slate-200 bg-white text-slate-700"
           aria-label="Benachrichtigungen"
+          aria-expanded={notificationsOpen}
         >
           <Bell className="h-4 w-4" aria-hidden="true" />
           <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
         </button>
       </div>
+
+      {mobileMenuOpen ? (
+        <nav className="grid gap-1 border-t border-slate-200 bg-white px-4 py-3 shadow-sm lg:hidden" aria-label="Navigation">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.id === activeItem;
+
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold ${
+                  isActive ? "bg-slate-950 text-white" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
+
+      {notificationsOpen ? (
+        <div className="absolute right-4 top-[72px] z-30 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-slate-200 bg-white p-3 shadow-xl sm:right-6 lg:right-8">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <p className="text-sm font-semibold text-slate-950">Benachrichtigungen</p>
+            <button
+              type="button"
+              onClick={() => setNotificationsOpen(false)}
+              className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100"
+              aria-label="Benachrichtigungen schliessen"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2">
+            <NotificationLink
+              href="/gema"
+              title="3 GEMA-Meldungen faellig"
+              detail="Fristen fuer Jazz, Kabarett und Poetry Slam pruefen."
+              onClick={() => setNotificationsOpen(false)}
+            />
+            <NotificationLink
+              href="/veranstaltungen?status=planned"
+              title="2 geplante Events vorbereiten"
+              detail="Poetry Slam und Sommerbuehne brauchen finale Checklisten."
+              onClick={() => setNotificationsOpen(false)}
+            />
+          </div>
+        </div>
+      ) : null}
     </header>
+  );
+}
+
+function NotificationLink({
+  href,
+  title,
+  detail,
+  onClick,
+}: {
+  href: string;
+  title: string;
+  detail: string;
+  onClick: () => void;
+}) {
+  return (
+    <Link href={href} onClick={onClick} className="block rounded-md border border-slate-100 p-3 transition hover:bg-slate-50">
+      <p className="text-sm font-semibold text-slate-950">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
+    </Link>
   );
 }
 

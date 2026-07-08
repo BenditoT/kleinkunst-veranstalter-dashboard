@@ -141,3 +141,18 @@
   animation: shimmer 2s infinite;
   content: '';
 }
+
+@media (min-width: 1024px) {
+  .app-sidebar,
+  .app-content {
+    transition: transform 0.2s ease, padding-left 0.2s ease;
+  }
+
+  .sidebar-collapsed .app-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar-collapsed .app-content {
+    padding-left: 0;
+  }
+}
