@@ -63,6 +63,15 @@ gcloud auth login
 npm run deploy:gcp
 ```
 
+GitHub Pages Demo-Deploy:
+
+```bash
+npm run build:pages
+```
+
+Der statische GitHub-Pages-Build nutzt einen clientseitigen Demo-PIN. Der
+aktuelle PIN ist `69198`.
+
 ## Environment
 
 Kopiere `.env.example` nach `.env.local` und fuelle die passenden Provider-Werte aus. `BACKEND_PROVIDER=google-cloud` ist der vorbereitete Default.

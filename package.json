@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "GITHUB_PAGES=true NEXT_PUBLIC_DEMO_PIN=69198 next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",

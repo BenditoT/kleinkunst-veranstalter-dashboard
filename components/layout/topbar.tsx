@@ -139,14 +139,14 @@ function SearchGroup({
     <section className="py-1">
       <p className="px-2 py-1 text-xs font-semibold uppercase tracking-normal text-slate-400">{title}</p>
       {items.map((item) => (
-        <a
+        <Link
           key={item.id}
           href={item.href}
           className="block rounded-md px-2 py-2 text-sm transition hover:bg-slate-50"
         >
           <span className="font-medium text-slate-900">{item.label}</span>
           <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
-        </a>
+        </Link>
       ))}
     </section>
   );
