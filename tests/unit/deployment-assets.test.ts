@@ -33,6 +33,8 @@ describe("Google Cloud deployment assets", () => {
     const oidcScript = read("scripts/google-cloud/setup-github-oidc.sh");
 
     expect(workflow).toContain("id-token: write");
+    expect(workflow).toContain("workflow_dispatch");
+    expect(workflow).not.toContain("push:");
     expect(workflow).toContain("google-github-actions/auth");
     expect(workflow).toContain("workload_identity_provider");
     expect(oidcScript).toContain("workload-identity-pools create");

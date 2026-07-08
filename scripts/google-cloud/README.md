@@ -25,4 +25,4 @@ bash scripts/google-cloud/setup-github-oidc.sh
 ```
 
 The script prints the exact GitHub repository secrets and variables needed by
-`.github/workflows/deploy-google-cloud.yml`.
+the manual workflow `.github/workflows/deploy-google-cloud.yml`.

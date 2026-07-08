@@ -68,5 +68,5 @@ export GOOGLE_CLOUD_PROJECT_ID=<project-id>
 npm run setup:gcp-oidc
 ```
 
-Der Workflow `.github/workflows/deploy-google-cloud.yml` nutzt Workload Identity
-Federation, also keine langfristigen Service-Account-Keys.
+Der manuelle Workflow `.github/workflows/deploy-google-cloud.yml` nutzt
+Workload Identity Federation, also keine langfristigen Service-Account-Keys.
