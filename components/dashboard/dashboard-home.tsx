@@ -107,7 +107,7 @@ export function DashboardHome() {
         />
       </section>
 
-      <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(760px,1fr)_320px]">
+      <section className="grid min-w-0 gap-5 2xl:grid-cols-[minmax(760px,1fr)_320px]">
         <UpcomingEvents events={metrics.nextEvents} />
         <OpenTasks tasks={openTasks} />
       </section>

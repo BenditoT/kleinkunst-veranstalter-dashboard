@@ -8,7 +8,8 @@
     "build:pages": "GITHUB_PAGES=true NEXT_PUBLIC_DEMO_PIN=69198 next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run",
+    "test": "vitest run tests/unit",
+    "test:e2e": "env -u NO_COLOR FORCE_COLOR=0 playwright test",
     "deploy:gcp": "bash scripts/google-cloud/provision-and-deploy.sh",
     "setup:gcp-oidc": "bash scripts/google-cloud/setup-github-oidc.sh"
   },
@@ -19,6 +20,7 @@
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
