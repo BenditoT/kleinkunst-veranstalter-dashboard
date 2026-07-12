@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kleinkunst Dashboard 2.0</title>
+<style>
+:root {
+  --bg: #FAF7F2;
+  --card: #FFFFFF;
+  --card-soft: #FDFBF7;
+  --hover: #F1EBE2;
+  --text: #2A2226;
+  --text-2: #6B5F63;
+  --muted: #9A8E92;
+  --accent: #7A2E3E;
+  --accent-hover: #632532;
+  --accent-soft: #F6E9EC;
+  --gold: #C9962E;
+  --gold-soft: #FBF3E1;
+  --green: #2E7D51;
+  --green-soft: #E5F3EB;
+  --red: #C03B2E;
+  --red-soft: #FBE9E7;
+  --amber: #B07818;
+  --amber-soft: #FCF3DF;
+  --blue: #2F5D8A;
+  --blue-soft: #E8F0F8;
+  --border: #E7DFD4;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(42,34,38,0.07), 0 4px 14px rgba(42,34,38,0.05);
+  --shadow-lg: 0 8px 40px rgba(42,34,38,0.18);
+  --transition: 0.15s ease;
+  --sidebar-w: 232px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+#app { width: 100%; min-height: 100vh; }
+button { font-family: inherit; }
+input, select, textarea {
+  font-family: inherit; font-size: 15px; color: var(--text);
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px; width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+label { font-size: 13px; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 5px; }
+::placeholder { color: var(--muted); }
+
+/* ===== Layout ===== */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+  background: linear-gradient(175deg, #35141D 0%, #2A1017 100%);
+  color: #EFE4E7; display: flex; flex-direction: column; padding: 18px 12px;
+  overflow-y: auto;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 18px; }
+.brand-logo {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold) 0%, #E0B65C 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.brand-name { font-weight: 700; font-size: 15px; line-height: 1.2; }
+.brand-sub { font-size: 11px; color: #C9A9B1; }
+.nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: #A87E89; padding: 14px 12px 6px; font-weight: 700; }
+.nav-item {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  padding: 10px 12px; min-height: 42px; border: none; background: transparent;
+  color: #DCC7CD; font-size: 14.5px; font-weight: 500; border-radius: 9px;
+  cursor: pointer; text-align: left; transition: background var(--transition), color var(--transition);
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.nav-item.active { background: rgba(201,150,46,0.18); color: #F2D69A; }
+.nav-item .ico { width: 21px; text-align: center; font-size: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--red); color: #fff; font-size: 11px;
+  font-weight: 700; border-radius: 99px; padding: 1px 7px; min-width: 20px; text-align: center;
+}
+.sidebar-foot { margin-top: auto; padding: 12px; font-size: 11px; color: #A87E89; }
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 24px; background: rgba(250,247,242,0.92);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+}
+.topbar h1 { font-size: 19px; margin: 0; font-weight: 700; flex-shrink: 0; }
+.search-wrap { position: relative; flex: 1; max-width: 420px; margin-left: auto; }
+.search-wrap input { padding-left: 36px; background: var(--card); }
+.search-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-results {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 60;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); overflow: hidden; max-height: 340px; overflow-y: auto;
+}
+.search-result {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 11px 14px; border: none; background: none; cursor: pointer; font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: var(--hover); }
+.search-result .sr-type { font-size: 11px; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+
+.content { padding: 22px 24px 90px; max-width: 1280px; width: 100%; margin: 0 auto; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 16px; min-height: 42px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform 0.05s;
+}
+.btn:hover { background: var(--hover); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-gold { background: var(--gold); border-color: var(--gold); color: #fff; }
+.btn-danger { color: var(--red); border-color: #EBC5C0; }
+.btn-danger:hover { background: var(--red-soft); }
+.btn-sm { padding: 6px 11px; min-height: 34px; font-size: 13px; }
+.btn-icon { padding: 8px; min-width: 42px; }
+.fab {
+  display: none; position: fixed; right: 18px; bottom: 84px; z-index: 45;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: var(--accent); color: #fff; font-size: 26px; cursor: pointer;
+  box-shadow: var(--shadow-lg); align-items: center; justify-content: center;
+}
+
+/* ===== Cards / KPIs ===== */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card-pad { padding: 18px 20px; }
+.card h3 { margin: 0 0 4px; font-size: 16px; }
+.card .card-sub { font-size: 13px; color: var(--text-2); margin: 0 0 12px; }
+.grid { display: grid; gap: 16px; }
+.kpi-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.kpi { padding: 16px 18px; cursor: pointer; transition: transform 0.1s, box-shadow var(--transition); }
+.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.kpi .kpi-label { font-size: 12.5px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.kpi .kpi-value { font-size: 26px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
+.kpi .kpi-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.two-col { grid-template-columns: 1fr 1fr; align-items: start; }
+
+/* ===== Badges / Status ===== */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+  border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.b-draft { background: #EFEAE3; color: #7A6E63; }
+.b-planned { background: var(--blue-soft); color: var(--blue); }
+.b-published { background: var(--green-soft); color: var(--green); }
+.b-completed { background: var(--gold-soft); color: var(--amber); }
+.b-cancelled { background: var(--red-soft); color: var(--red); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.ampel-red { background: var(--red); }
+.ampel-amber { background: var(--amber); }
+.ampel-green { background: var(--green); }
+.ampel-grey { background: #C6BCB0; }
+
+/* ===== Lists / Tables ===== */
+.list-item {
+  display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+  border-bottom: 1px solid var(--border); cursor: pointer; min-height: 52px;
+  transition: background var(--transition); background: var(--card);
+}
+.list-item:hover { background: var(--card-soft); }
+.list-item:last-child { border-bottom: none; }
+.li-main { min-width: 0; flex: 1; }
+.li-title { font-weight: 650; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li-sub { font-size: 12.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li-right { text-align: right; flex-shrink: 0; }
+.date-chip {
+  flex-shrink: 0; width: 48px; text-align: center; background: var(--card-soft);
+  border: 1px solid var(--border); border-radius: 10px; padding: 5px 2px; line-height: 1.15;
+}
+.date-chip .d { font-size: 17px; font-weight: 800; }
+.date-chip .m { font-size: 10.5px; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.progress { height: 7px; background: var(--hover); border-radius: 99px; overflow: hidden; }
+.progress > div { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.3s; }
+.empty {
+  text-align: center; padding: 40px 20px; color: var(--text-2);
+}
+.empty .big { font-size: 36px; margin-bottom: 8px; }
+
+/* ===== Filter bar ===== */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
+.filter-bar select, .filter-bar input { width: auto; min-width: 140px; }
+.filter-bar .spacer { flex: 1; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 7px 13px; border-radius: 99px; border: 1px solid var(--border);
+  background: var(--card); font-size: 13px; font-weight: 600; cursor: pointer; min-height: 36px;
+}
+.chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ===== Kalender ===== */
+.cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.cal-title { font-size: 18px; font-weight: 800; min-width: 170px; text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-dow { text-align: center; font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding: 4px 0; }
+.cal-cell {
+  min-height: 96px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px; cursor: pointer; position: relative;
+  transition: border-color var(--transition);
+}
+.cal-cell:hover { border-color: var(--accent); }
+.cal-cell.other { opacity: 0.45; }
+.cal-cell.today { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+.cal-daynum { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.cal-cell.today .cal-daynum { color: var(--amber); }
+.cal-ev {
+  display: block; width: 100%; text-align: left; border: none; cursor: pointer;
+  font-size: 11px; font-weight: 650; color: #fff; padding: 3px 6px;
+  border-radius: 5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cal-conflict { position: absolute; top: 5px; right: 6px; font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 12.5px; color: var(--text-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ===== Modal / Drawer ===== */
+.overlay {
+  position: fixed; inset: 0; background: rgba(42,34,38,0.45); z-index: 90;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal {
+  background: var(--card); border-radius: 16px; box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 640px; max-height: calc(100vh - 40px);
+  display: flex; flex-direction: column; animation: slideUp 0.18s ease;
+}
+.modal.wide { max-width: 760px; }
+.modal-head {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.modal-head h2 { margin: 0; font-size: 18px; flex: 1; min-width: 0; }
+.modal-body { padding: 18px 20px; overflow-y: auto; }
+.modal-foot {
+  display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.modal-foot .spacer { flex: 1; }
+.x-btn {
+  border: none; background: var(--hover); color: var(--text-2); width: 36px; height: 36px;
+  border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0;
+}
+.x-btn:hover { background: var(--border); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid .full { grid-column: 1 / -1; }
+.warn-box {
+  background: var(--amber-soft); border: 1px solid #EBD8A8; color: var(--amber);
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13.5px; font-weight: 600;
+}
+.info-box {
+  background: var(--blue-soft); border: 1px solid #C6D9EB; color: var(--blue);
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13.5px;
+}
+
+/* ===== Checkbox / Tasks ===== */
+.task-row { display: flex; align-items: flex-start; gap: 11px; padding: 11px 4px; border-bottom: 1px solid var(--border); }
+.task-row:last-child { border-bottom: none; }
+.task-check {
+  width: 24px; height: 24px; min-height: 24px; border-radius: 7px; border: 2px solid var(--border);
+  background: var(--card); cursor: pointer; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; padding: 0;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-title { font-size: 14.5px; font-weight: 550; }
+.task-title.done { text-decoration: line-through; color: var(--muted); }
+.task-meta { font-size: 12px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+.cat-tag { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+
+/* ===== Toast ===== */
+.toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.toast {
+  background: #35262C; color: #fff; padding: 11px 20px; border-radius: 99px;
+  font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg);
+  animation: slideUp 0.2s ease; max-width: 90vw;
+}
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* ===== Detail sections ===== */
+.detail-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+.detail-stat { background: var(--card-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+.detail-stat .l { font-size: 11.5px; color: var(--text-2); font-weight: 600; }
+.detail-stat .v { font-size: 17px; font-weight: 800; margin-top: 1px; }
+.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-2); margin: 20px 0 8px; }
+.artist-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.artist-chip {
+  display: inline-flex; align-items: center; gap: 7px; background: var(--accent-soft);
+  color: var(--accent); font-weight: 650; font-size: 13px; padding: 6px 12px; border-radius: 99px;
+}
+
+/* ===== Table ===== */
+.table-wrap { overflow-x: auto; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 10px 12px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+.tbl td { padding: 11px 12px; border-bottom: 1px solid var(--border); }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pos { color: var(--green); font-weight: 700; }
+.neg { color: var(--red); font-weight: 700; }
+
+/* ===== Bottom nav (mobile) ===== */
+.bottomnav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+}
+.bottomnav-inner { display: flex; }
+.bn-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  border: none; background: none; padding: 7px 2px; min-height: 52px;
+  font-size: 10.5px; font-weight: 650; color: var(--text-2); cursor: pointer; border-radius: 10px;
+  position: relative;
+}
+.bn-item .ico { font-size: 20px; }
+.bn-item.active { color: var(--accent); }
+.bn-dot { position: absolute; top: 5px; right: calc(50% - 16px); width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .hide-mobile { display: none; }
+  .bottomnav { display: block; }
+  .fab { display: flex; }
+  .topbar { padding: 10px 14px; }
+  .content { padding: 16px 14px 110px; }
+  .two-col { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .cal-cell { min-height: 64px; padding: 4px; }
+  .cal-ev { font-size: 9px; padding: 2px 4px; }
+  .overlay { padding: 0; align-items: flex-end; }
+  .modal { max-width: 100%; max-height: 94vh; border-radius: 16px 16px 0 0; }
+  .topbar h1 { font-size: 17px; }
+  .kpi .kpi-value { font-size: 22px; }
+}
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .filter-bar select, .filter-bar input { min-width: 110px; flex: 1; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { h, render } from 'https://esm.sh/preact@10.19.3';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'https://esm.sh/preact@10.19.3/hooks';
+import htm from 'https://esm.sh/htm@3.1.1';
+const html = htm.bind(h);
+
+/* ============================================================
+   KLEINKUNST DASHBOARD 2.0 — Single-File App (Preact + htm)
+   Daten liegen lokal im Browser (localStorage). Kein Server nötig.
+   ============================================================ */
+const APP_VERSION = '2.0.0';
+const STORAGE_KEY = 'kleinkunst_dashboard_v2';
+
+/* ===== Demo-/Startdaten (aus Version 1 übernommen, Umlaute korrigiert) ===== */
+const SEED = {
+  venues: [
+    { id: 'venue-kupfersaal', name: 'Kupfersaal Leipzig', city: 'Leipzig', capacity: 420, color: '#14b8a6', type: 'Theater', notes: '' },
+    { id: 'venue-lindenhof', name: 'Lindenhof Bühne', city: 'Augsburg', capacity: 180, color: '#8b5cf6', type: 'Club', notes: '' },
+    { id: 'venue-kulturdeck', name: 'Kulturdeck Köln', city: 'Köln', capacity: 260, color: '#f59e0b', type: 'Open Air', notes: '' },
+    { id: 'venue-schwarzer-saal', name: 'Schwarzer Saal', city: 'Leipzig', capacity: 140, color: '#f43f5e', type: 'Theater', notes: '' },
+  ],
+  artists: [
+    { id: 'artist-mara-sol', stageName: 'Mara Sol', contactName: 'Mara Sommer', email: '', phone: '', genres: ['Jazz', 'Soul'], rating: 5, isFavorite: true, notes: '' },
+    { id: 'artist-ernst-klein', stageName: 'Ernst Klein', contactName: 'Ernst Klein', email: '', phone: '', genres: ['Kabarett', 'Satire'], rating: 4, isFavorite: true, notes: '' },
+    { id: 'artist-wortwechsel', stageName: 'Wortwechsel Kollektiv', contactName: 'Lea Brandt', email: '', phone: '', genres: ['Poetry Slam', 'Lesung'], rating: 4, isFavorite: false, notes: '' },
+    { id: 'artist-trio-luna', stageName: 'Trio Luna', contactName: 'Jonas Weber', email: '', phone: '', genres: ['Chanson', 'Theatermusik'], rating: 5, isFavorite: false, notes: '' },
+  ],
+  events: [
+    { id: 'event-jazz-im-hof', title: 'Jazz im Hof', subtitle: 'Sommerabend mit Mara Sol', date: '2026-07-09', startTime: '20:00', endTime: '21:45', venueId: 'venue-kupfersaal', artistIds: ['artist-mara-sol'], status: 'published', ticketPrice: 28, capacity: 320, soldTickets: 286, revenueActual: 13800, costs: 6200, gemaStatus: 'pending', gemaDueDate: '2026-07-09', notes: '' },
+    { id: 'event-kabarett-stadtgefluester', title: 'Kabarett: Stadtgeflüster', subtitle: 'Politischer Abend mit Ernst Klein', date: '2026-07-11', startTime: '19:30', endTime: '21:10', venueId: 'venue-lindenhof', artistIds: ['artist-ernst-klein'], status: 'published', ticketPrice: 24, capacity: 180, soldTickets: 142, revenueActual: 9400, costs: 4100, gemaStatus: 'pending', gemaDueDate: '2026-07-11', notes: '' },
+    { id: 'event-poetry-slam', title: 'Poetry Slam Spezial', subtitle: 'Stadtfinale der Wortbühne', date: '2026-07-13', startTime: '20:00', endTime: '22:15', venueId: 'venue-kulturdeck', artistIds: ['artist-wortwechsel'], status: 'planned', ticketPrice: 18, capacity: 250, soldTickets: 160, revenueActual: 7200, costs: 3600, gemaStatus: 'pending', gemaDueDate: '2026-07-14', notes: '' },
+    { id: 'event-sommerbuehne-impro', title: 'Sommerbühne Impro', subtitle: 'Improtheater unter freiem Himmel', date: '2026-07-17', startTime: '19:00', endTime: '20:40', venueId: 'venue-kulturdeck', artistIds: ['artist-wortwechsel'], status: 'planned', ticketPrice: 20, capacity: 260, soldTickets: 130, revenueActual: 6500, costs: 3900, gemaStatus: 'not_required', gemaDueDate: null, notes: '' },
+    { id: 'event-chanson-nacht', title: 'Chanson Nacht', subtitle: 'Trio Luna spielt Brel und Brecht', date: '2026-07-21', startTime: '20:00', endTime: '22:00', venueId: 'venue-schwarzer-saal', artistIds: ['artist-trio-luna'], status: 'planned', ticketPrice: 26, capacity: 140, soldTickets: 96, revenueActual: 6250, costs: 2800, gemaStatus: 'submitted', gemaDueDate: '2026-07-23', notes: '' },
+    { id: 'event-nacht-der-lieder', title: 'Nacht der Lieder', subtitle: 'Doppelkonzert im Kupfersaal', date: '2026-07-29', startTime: '20:00', endTime: '22:30', venueId: 'venue-kupfersaal', artistIds: ['artist-mara-sol', 'artist-trio-luna'], status: 'draft', ticketPrice: 32, capacity: 400, soldTickets: 98, revenueActual: 3100, costs: 7500, gemaStatus: 'not_required', gemaDueDate: null, notes: '' },
+  ],
+  tasks: [
+    { id: 'task-1', title: 'GEMA-Musikfolge für Jazz im Hof anfordern', dueDate: '2026-07-08', eventId: 'event-jazz-im-hof', category: 'gema', completed: false, assignee: 'Clara' },
+    { id: 'task-2', title: 'Technik-Rider Lindenhof bestätigen', dueDate: '2026-07-09', eventId: 'event-kabarett-stadtgefluester', category: 'tech', completed: false, assignee: 'Torsten' },
+    { id: 'task-3', title: 'Newsletter Segment Leipzig versenden', dueDate: '2026-07-10', eventId: 'event-jazz-im-hof', category: 'marketing', completed: false, assignee: 'Mira' },
+    { id: 'task-4', title: 'Künstlervertrag Trio Luna gegenzeichnen', dueDate: '2026-07-12', eventId: 'event-chanson-nacht', category: 'booking', completed: false, assignee: 'Clara' },
+    { id: 'task-5', title: 'Abendkasse Poetry Slam vorbereiten', dueDate: '2026-07-13', eventId: 'event-poetry-slam', category: 'finance', completed: false, assignee: 'Andreas' },
+    { id: 'task-6', title: 'Pressefoto für Sommerbühne freigeben', dueDate: '2026-07-14', eventId: 'event-sommerbuehne-impro', category: 'marketing', completed: false, assignee: 'Mira' },
+    { id: 'task-7', title: 'GEMA-Rückfrage Poetry Slam klären', dueDate: '2026-07-14', eventId: 'event-poetry-slam', category: 'gema', completed: false, assignee: 'Torsten' },
+    { id: 'task-8', title: 'Kulturdeck Bestuhlung final melden', dueDate: '2026-07-15', eventId: 'event-sommerbuehne-impro', category: 'general', completed: false, assignee: 'Andreas' },
+    { id: 'task-9', title: 'Posterdatei archivieren', dueDate: '2026-07-07', eventId: 'event-jazz-im-hof', category: 'marketing', completed: true, assignee: 'Mira' },
+  ],
+  settings: { onboardingDone: false },
+};
+
+/* ===== Konstanten ===== */
+const STATUS = {
+  draft: { label: 'Entwurf', cls: 'b-draft' },
+  planned: { label: 'Geplant', cls: 'b-planned' },
+  published: { label: 'Veröffentlicht', cls: 'b-published' },
+  completed: { label: 'Abgeschlossen', cls: 'b-completed' },
+  cancelled: { label: 'Abgesagt', cls: 'b-cancelled' },
+};
+const GEMA_STATUS = {
+  not_required: 'Nicht nötig',
+  pending: 'Offen',
+  submitted: 'Eingereicht',
+  confirmed: 'Bestätigt',
+  problem: 'Problem',
+};
+const CATEGORIES = {
+  booking: { label: 'Booking', bg: '#F6E9EC', fg: '#7A2E3E' },
+  marketing: { label: 'Werbung', bg: '#E8F0F8', fg: '#2F5D8A' },
+  tech: { label: 'Technik', bg: '#EFEAE3', fg: '#6B5F63' },
+  finance: { label: 'Finanzen', bg: '#E5F3EB', fg: '#2E7D51' },
+  gema: { label: 'GEMA', bg: '#FCF3DF', fg: '#B07818' },
+  general: { label: 'Allgemein', bg: '#F1EBE2', fg: '#8C7B6B' },
+};
+/* Checklisten-Vorlage: offsetDays = Tage vor der Veranstaltung */
+const TASK_TEMPLATE = [
+  { title: 'Künstlervertrag unterschreiben', category: 'booking', offsetDays: 42 },
+  { title: 'Technik-Rider anfordern und prüfen', category: 'tech', offsetDays: 28 },
+  { title: 'Veranstaltung auf Website und Social Media ankündigen', category: 'marketing', offsetDays: 28 },
+  { title: 'GEMA-Anmeldung einreichen', category: 'gema', offsetDays: 21 },
+  { title: 'Newsletter mit Event-Hinweis versenden', category: 'marketing', offsetDays: 14 },
+  { title: 'Gagen- und Kostenkalkulation aktualisieren', category: 'finance', offsetDays: 10 },
+  { title: 'Abendkasse und Wechselgeld vorbereiten', category: 'finance', offsetDays: 1 },
+  { title: 'GEMA-Musikfolge nach Konzert einreichen', category: 'gema', offsetDays: -3 },
+  { title: 'Abrechnung abschließen', category: 'finance', offsetDays: -7 },
+];
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DOW = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const VENUE_COLORS = ['#14b8a6','#8b5cf6','#f59e0b','#f43f5e','#2F5D8A','#2E7D51','#C9962E','#7A2E3E'];
+
+/* ===== Hilfsfunktionen ===== */
+const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const EUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const fmtEUR = (n) => EUR.format(n || 0);
+const todayISO = () => {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+};
+const fmtDate = (iso) => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-').map(Number);
+  return String(d).padStart(2, '0') + '.' + String(m).padStart(2, '0') + '.' + y;
+};
+const fmtDateShort = (iso) => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return ['So','Mo','Di','Mi','Do','Fr','Sa'][dt.getDay()] + ', ' + String(d).padStart(2, '0') + '. ' + MONTHS[m - 1].slice(0, 3) + '.';
+};
+const daysUntil = (iso) => {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  return Math.round((target - now) / 86400000);
+};
+const addDays = (iso, delta) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + delta);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+};
+const timeToMin = (t) => {
+  if (!t) return 0;
+  const [hh, mm] = t.split(':').map(Number);
+  return hh * 60 + (mm || 0);
+};
+/* Doppelbelegung: gleicher Ort, gleicher Tag, Zeiten überlappen (inkl. 30 Min Puffer) */
+function findConflicts(event, allEvents) {
+  if (!event.venueId || !event.date) return [];
+  const buffer = 30;
+  return allEvents.filter((other) => {
+    if (other.id === event.id) return false;
+    if (other.venueId !== event.venueId || other.date !== event.date) return false;
+    if (other.status === 'cancelled' || event.status === 'cancelled') return false;
+    const aStart = timeToMin(event.startTime) - buffer;
+    const aEnd = timeToMin(event.endTime || event.startTime) + buffer;
+    const bStart = timeToMin(other.startTime);
+    const bEnd = timeToMin(other.endTime || other.startTime);
+    return aStart < bEnd && bStart < aEnd;
+  });
+}
+/* GEMA-Ampel: rot = überfällig, gelb = fällig in <= 7 Tagen, grün = ok */
+function gemaAmpel(event) {
+  if (event.gemaStatus === 'confirmed') return 'green';
+  if (event.gemaStatus === 'not_required') return 'grey';
+  if (event.gemaStatus === 'problem') return 'red';
+  const days = daysUntil(event.gemaDueDate);
+  if (days === null) return 'grey';
+  if (days < 0) return 'red';
+  if (days <= 7) return 'amber';
+  return 'green';
+}
+
+/* ===== Datenhaltung (localStorage) ===== */
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.events)) {
+        return {
+          venues: parsed.venues || [],
+          artists: parsed.artists || [],
+          events: parsed.events || [],
+          tasks: parsed.tasks || [],
+          settings: Object.assign({ onboardingDone: false }, parsed.settings),
+        };
+      }
+    }
+  } catch (err) { console.error('loadData:', err); }
+  return JSON.parse(JSON.stringify(SEED));
+}
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch (err) { console.error('saveData:', err); }
+}
+
+/* ===== Toast-Hook ===== */
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((message, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 2800);
+  }, []);
+  return { toasts, show };
+}
+function Toasts({ toasts }) {
+  return html`<div class="toasts" role="status" aria-live="polite">
+    ${toasts.map((t) => html`<div key=${t.id} class="toast ${t.type}">${t.message}</div>`)}
+  </div>`;
+}
+
+/* ===== Basis-Komponenten ===== */
+function Modal({ title, onClose, children, footer, wide }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return html`<div class="overlay" onClick=${(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label=${title}>
+      <div class="modal-head">
+        <h2>${title}</h2>
+        <button class="x-btn" onClick=${onClose} aria-label="Schließen">✕</button>
+      </div>
+      <div class="modal-body">${children}</div>
+      ${footer ? html`<div class="modal-foot">${footer}</div>` : null}
+    </div>
+  </div>`;
+}
+
+function StatusBadge({ status }) {
+  const s = STATUS[status] || STATUS.draft;
+  return html`<span class="badge ${s.cls}">${s.label}</span>`;
+}
+
+function Ampel({ color, label }) {
+  return html`<span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;">
+    <span class="dot ampel-${color}"></span>${label || ''}
+  </span>`;
+}
+
+function Empty({ icon, text, hint }) {
+  return html`<div class="empty">
+    <div class="big">${icon}</div>
+    <div style="font-weight:700;">${text}</div>
+    ${hint ? html`<div style="font-size:13px;margin-top:4px;">${hint}</div>` : null}
+  </div>`;
+}
+
+/* ===== Veranstaltungs-Formular ===== */
+function EventForm({ initial, venues, artists, allEvents, onSave, onClose }) {
+  const [form, setForm] = useState(() => Object.assign({
+    id: null, title: '', subtitle: '', date: todayISO(), startTime: '20:00', endTime: '22:00',
+    venueId: venues[0] ? venues[0].id : '', artistIds: [], status: 'draft',
+    ticketPrice: 20, capacity: 100, soldTickets: 0, revenueActual: 0, costs: 0,
+    gemaStatus: 'pending', gemaDueDate: '', notes: '',
+  }, initial || {}));
+  const [error, setError] = useState('');
+  const set = (key) => (e) => {
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+  const toggleArtist = (artistId) => {
+    setForm((prev) => ({
+      ...prev,
+      artistIds: prev.artistIds.includes(artistId)
+        ? prev.artistIds.filter((x) => x !== artistId)
+        : [...prev.artistIds, artistId],
+    }));
+  };
+  const conflicts = useMemo(() => findConflicts(form, allEvents), [form.venueId, form.date, form.startTime, form.endTime, form.status, allEvents]);
+  const capacityWarn = form.venueId && (() => {
+    const v = venues.find((x) => x.id === form.venueId);
+    return v && Number(form.capacity) > v.capacity;
+  })();
+
+  const submit = () => {
+    if (!form.title.trim()) { setError('Bitte einen Titel eingeben.'); return; }
+    if (!form.date) { setError('Bitte ein Datum wählen.'); return; }
+    if (!form.venueId) { setError('Bitte einen Spielort wählen.'); return; }
+    onSave({ ...form, title: form.title.trim(), gemaDueDate: form.gemaDueDate || null });
+  };
+
+  return html`<${Modal} title=${form.id ? 'Veranstaltung bearbeiten' : 'Neue Veranstaltung'} onClose=${onClose} wide
+    footer=${html`
+      <button class="btn" onClick=${onClose}>Abbrechen</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${submit}>${form.id ? 'Speichern' : 'Anlegen'}</button>
+    `}>
+    ${error ? html`<div class="warn-box" style="margin-bottom:14px;">⚠️ ${error}</div>` : null}
+    ${conflicts.length > 0 ? html`<div class="warn-box" style="margin-bottom:14px;">
+      ⚠️ Terminkonflikt: ${conflicts.map((c) => '„' + c.title + '“ (' + c.startTime + ' Uhr)').join(', ')} am selben Tag im selben Spielort.
+    </div>` : null}
+    <div class="form-grid">
+      <div class="full">
+        <label for="ev-title">Titel *</label>
+        <input id="ev-title" value=${form.title} onInput=${set('title')} placeholder="z. B. Jazz im Hof" />
+      </div>
+      <div class="full">
+        <label for="ev-subtitle">Untertitel</label>
+        <input id="ev-subtitle" value=${form.subtitle} onInput=${set('subtitle')} placeholder="z. B. Sommerabend mit …" />
+      </div>
+      <div>
+        <label for="ev-date">Datum *</label>
+        <input id="ev-date" type="date" value=${form.date} onInput=${set('date')} />
+      </div>
+      <div>
+        <label for="ev-venue">Spielort *</label>
+        <select id="ev-venue" value=${form.venueId} onChange=${set('venueId')}>
+          ${venues.map((v) => html`<option key=${v.id} value=${v.id}>${v.name}</option>`)}
+        </select>
+      </div>
+      <div>
+        <label for="ev-start">Beginn</label>
+        <input id="ev-start" type="time" value=${form.startTime} onInput=${set('startTime')} />
+      </div>
+      <div>
+        <label for="ev-end">Ende</label>
+        <input id="ev-end" type="time" value=${form.endTime} onInput=${set('endTime')} />
+      </div>
+      <div class="full">
+        <label>Künstler</label>
+        <div class="chip-row">
+          ${artists.map((a) => html`
+            <button key=${a.id} type="button" class="chip ${form.artistIds.includes(a.id) ? 'on' : ''}"
+              onClick=${() => toggleArtist(a.id)}>${a.stageName}</button>
+          `)}
+          ${artists.length === 0 ? html`<span style="font-size:13px;color:var(--muted);">Noch keine Künstler angelegt.</span>` : null}
+        </div>
+      </div>
+      <div>
+        <label for="ev-status">Status</label>
+        <select id="ev-status" value=${form.status} onChange=${set('status')}>
+          ${Object.keys(STATUS).map((k) => html`<option key=${k} value=${k}>${STATUS[k].label}</option>`)}
+        </select>
+      </div>
+      <div>
+        <label for="ev-price">Ticketpreis (€)</label>
+        <input id="ev-price" type="number" min="0" step="0.5" value=${form.ticketPrice} onInput=${set('ticketPrice')} />
+      </div>
+      <div>
+        <label for="ev-cap">Plätze</label>
+        <input id="ev-cap" type="number" min="0" value=${form.capacity} onInput=${set('capacity')} />
+        ${capacityWarn ? html`<div style="font-size:12px;color:var(--amber);margin-top:3px;">Mehr Plätze als der Spielort fasst.</div>` : null}
+      </div>
+      <div>
+        <label for="ev-sold">Verkaufte Tickets</label>
+        <input id="ev-sold" type="number" min="0" value=${form.soldTickets} onInput=${set('soldTickets')} />
+      </div>
+      <div>
+        <label for="ev-rev">Einnahmen bisher (€)</label>
+        <input id="ev-rev" type="number" min="0" value=${form.revenueActual} onInput=${set('revenueActual')} />
+      </div>
+      <div>
+        <label for="ev-costs">Kosten gesamt (€)</label>
+        <input id="ev-costs" type="number" min="0" value=${form.costs} onInput=${set('costs')} />
+      </div>
+      <div>
+        <label for="ev-gema">GEMA-Status</label>
+        <select id="ev-gema" value=${form.gemaStatus} onChange=${set('gemaStatus')}>
+          ${Object.keys(GEMA_STATUS).map((k) => html`<option key=${k} value=${k}>${GEMA_STATUS[k]}</option>`)}
+        </select>
+      </div>
+      <div>
+        <label for="ev-gemadue">GEMA-Frist</label>
+        <input id="ev-gemadue" type="date" value=${form.gemaDueDate || ''} onInput=${set('gemaDueDate')} />
+      </div>
+      <div class="full">
+        <label for="ev-notes">Notizen</label>
+        <textarea id="ev-notes" rows="3" value=${form.notes} onInput=${set('notes')} placeholder="Interne Notizen, Absprachen, Technik …"></textarea>
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ===== Veranstaltungs-Detail ===== */
+function EventDetail({ event, venues, artists, tasks, onClose, onEdit, onDelete, onToggleTask, onAddTask, onDeleteTask, onApplyTemplate, allEvents }) {
+  const venue = venues.find((v) => v.id === event.venueId);
+  const eventArtists = artists.filter((a) => event.artistIds.includes(a.id));
+  const eventTasks = tasks.filter((t) => t.eventId === event.id)
+    .sort((a, b) => (a.completed === b.completed ? (a.dueDate || '').localeCompare(b.dueDate || '') : a.completed ? 1 : -1));
+  const doneCount = eventTasks.filter((t) => t.completed).length;
+  const soldPct = event.capacity > 0 ? Math.round((event.soldTickets / event.capacity) * 100) : 0;
+  const profit = (event.revenueActual || 0) - (event.costs || 0);
+  const conflicts = findConflicts(event, allEvents);
+  const [newTask, setNewTask] = useState('');
+  const ampel = gemaAmpel(event);
+
+  const addTask = () => {
+    if (!newTask.trim()) return;
+    onAddTask(event.id, newTask.trim());
+    setNewTask('');
+  };
+
+  return html`<${Modal} title=${event.title} onClose=${onClose} wide
+    footer=${html`
+      <button class="btn btn-danger" onClick=${() => onDelete(event.id)}>Löschen</button>
+      <span class="spacer"></span>
+      <button class="btn" onClick=${onClose}>Schließen</button>
+      <button class="btn btn-primary" onClick=${() => onEdit(event)}>Bearbeiten</button>
+    `}>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <${StatusBadge} status=${event.status} />
+      <span style="font-size:14px;color:var(--text-2);">${fmtDateShort(event.date)} · ${event.startTime}–${event.endTime} Uhr</span>
+      ${venue ? html`<span class="badge" style="background:${venue.color}22;color:${venue.color};">📍 ${venue.name}</span>` : null}
+    </div>
+    ${event.subtitle ? html`<p style="margin:10px 0 0;color:var(--text-2);">${event.subtitle}</p>` : null}
+    ${conflicts.length > 0 ? html`<div class="warn-box" style="margin-top:12px;">⚠️ Terminkonflikt mit ${conflicts.map((c) => '„' + c.title + '“').join(', ')}</div>` : null}
+
+    <div class="detail-stats">
+      <div class="detail-stat"><div class="l">Tickets</div><div class="v">${event.soldTickets} / ${event.capacity}</div>
+        <div class="progress" style="margin-top:6px;"><div style="width:${Math.min(soldPct, 100)}%;"></div></div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">${soldPct}% Auslastung</div>
+      </div>
+      <div class="detail-stat"><div class="l">Einnahmen</div><div class="v">${fmtEUR(event.revenueActual)}</div></div>
+      <div class="detail-stat"><div class="l">Kosten</div><div class="v">${fmtEUR(event.costs)}</div></div>
+      <div class="detail-stat"><div class="l">Ergebnis</div><div class="v ${profit >= 0 ? 'pos' : 'neg'}">${fmtEUR(profit)}</div></div>
+    </div>
+
+    <div class="section-title">GEMA</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <${Ampel} color=${ampel} label=${GEMA_STATUS[event.gemaStatus]} />
+      ${event.gemaDueDate ? html`<span style="font-size:13px;color:var(--text-2);">Frist: ${fmtDate(event.gemaDueDate)}
+        ${(() => { const d = daysUntil(event.gemaDueDate); return d !== null && event.gemaStatus !== 'confirmed' ? (d < 0 ? ' (' + Math.abs(d) + ' Tage überfällig!)' : ' (in ' + d + ' Tagen)') : ''; })()}
+      </span>` : null}
+    </div>
+
+    ${eventArtists.length > 0 ? html`
+      <div class="section-title">Künstler</div>
+      <div class="artist-chips">${eventArtists.map((a) => html`<span key=${a.id} class="artist-chip">🎤 ${a.stageName}</span>`)}</div>
+    ` : null}
+
+    ${event.notes ? html`<div class="section-title">Notizen</div><p style="margin:0;font-size:14px;white-space:pre-wrap;">${event.notes}</p>` : null}
+
+    <div class="section-title">Checkliste ${eventTasks.length > 0 ? '(' + doneCount + '/' + eventTasks.length + ')' : ''}</div>
+    ${eventTasks.length > 0 ? html`<div class="progress" style="margin-bottom:10px;"><div style="width:${eventTasks.length ? Math.round((doneCount / eventTasks.length) * 100) : 0}%;background:var(--green);"></div></div>` : null}
+    ${eventTasks.map((t) => html`
+      <div key=${t.id} class="task-row">
+        <button class="task-check ${t.completed ? 'done' : ''}" onClick=${() => onToggleTask(t.id)} aria-label=${t.completed ? 'Als offen markieren' : 'Als erledigt markieren'}>${t.completed ? '✓' : ''}</button>
+        <div style="flex:1;min-width:0;">
+          <div class="task-title ${t.completed ? 'done' : ''}">${t.title}</div>
+          <div class="task-meta">
+            <span class="cat-tag" style="background:${CATEGORIES[t.category].bg};color:${CATEGORIES[t.category].fg};">${CATEGORIES[t.category].label}</span>
+            ${t.dueDate ? html`<span>bis ${fmtDate(t.dueDate)}</span>` : null}
+            ${t.assignee ? html`<span>· ${t.assignee}</span>` : null}
+          </div>
+        </div>
+        <button class="x-btn" style="width:30px;height:30px;font-size:12px;" onClick=${() => onDeleteTask(t.id)} aria-label="Aufgabe löschen">✕</button>
+      </div>
+    `)}
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input value=${newTask} onInput=${(e) => setNewTask(e.target.value)} placeholder="Neue Aufgabe …"
+        onKeyDown=${(e) => { if (e.key === 'Enter') addTask(); }} />
+      <button class="btn" onClick=${addTask}>+</button>
+    </div>
+    ${eventTasks.length === 0 ? html`
+      <button class="btn" style="margin-top:10px;width:100%;" onClick=${() => onApplyTemplate(event)}>
+        📋 Standard-Checkliste einfügen (${TASK_TEMPLATE.length} Aufgaben)
+      </button>
+    ` : null}
+  <//>`;
+}
+
+/* ===== Spielort-Formular ===== */
+function VenueForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(() => Object.assign({
+    id: null, name: '', city: '', capacity: 100, type: 'Theater',
+    color: VENUE_COLORS[Math.floor(Math.random() * VENUE_COLORS.length)], notes: '',
+  }, initial || {}));
+  const [error, setError] = useState('');
+  const set = (key) => (e) => {
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+  const submit = () => {
+    if (!form.name.trim()) { setError('Bitte einen Namen eingeben.'); return; }
+    onSave({ ...form, name: form.name.trim() });
+  };
+  return html`<${Modal} title=${form.id ? 'Spielort bearbeiten' : 'Neuer Spielort'} onClose=${onClose}
+    footer=${html`
+      <button class="btn" onClick=${onClose}>Abbrechen</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${submit}>${form.id ? 'Speichern' : 'Anlegen'}</button>
+    `}>
+    ${error ? html`<div class="warn-box" style="margin-bottom:14px;">⚠️ ${error}</div>` : null}
+    <div class="form-grid">
+      <div class="full"><label for="vn-name">Name *</label><input id="vn-name" value=${form.name} onInput=${set('name')} placeholder="z. B. Kupfersaal" /></div>
+      <div><label for="vn-city">Stadt</label><input id="vn-city" value=${form.city} onInput=${set('city')} /></div>
+      <div><label for="vn-type">Art</label>
+        <select id="vn-type" value=${form.type} onChange=${set('type')}>
+          ${['Theater','Club','Open Air','Kirche','Saal','Bar','Sonstiges'].map((t) => html`<option key=${t} value=${t}>${t}</option>`)}
+        </select>
+      </div>
+      <div><label for="vn-cap">Kapazität</label><input id="vn-cap" type="number" min="0" value=${form.capacity} onInput=${set('capacity')} /></div>
+      <div><label for="vn-color">Kalenderfarbe</label><input id="vn-color" type="color" value=${form.color} onInput=${set('color')} style="height:44px;padding:4px;" /></div>
+      <div class="full"><label for="vn-notes">Notizen</label><textarea id="vn-notes" rows="3" value=${form.notes} onInput=${set('notes')} placeholder="Ansprechpartner, Technik, Besonderheiten …"></textarea></div>
+    </div>
+  <//>`;
+}
+
+/* ===== Künstler-Formular ===== */
+function ArtistForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(() => Object.assign({
+    id: null, stageName: '', contactName: '', email: '', phone: '',
+    genres: [], rating: 3, isFavorite: false, notes: '',
+  }, initial || {}, initial ? { genres: [...(initial.genres || [])] } : {}));
+  const [genreInput, setGenreInput] = useState((initial && initial.genres || []).join(', '));
+  const [error, setError] = useState('');
+  const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const submit = () => {
+    if (!form.stageName.trim()) { setError('Bitte einen Künstlernamen eingeben.'); return; }
+    const genres = genreInput.split(',').map((g) => g.trim()).filter(Boolean);
+    onSave({ ...form, stageName: form.stageName.trim(), genres });
+  };
+  return html`<${Modal} title=${form.id ? 'Künstler bearbeiten' : 'Neuer Künstler'} onClose=${onClose}
+    footer=${html`
+      <button class="btn" onClick=${onClose}>Abbrechen</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${submit}>${form.id ? 'Speichern' : 'Anlegen'}</button>
+    `}>
+    ${error ? html`<div class="warn-box" style="margin-bottom:14px;">⚠️ ${error}</div>` : null}
+    <div class="form-grid">
+      <div class="full"><label for="ar-stage">Künstlername *</label><input id="ar-stage" value=${form.stageName} onInput=${set('stageName')} /></div>
+      <div><label for="ar-contact">Kontaktperson</label><input id="ar-contact" value=${form.contactName} onInput=${set('contactName')} /></div>
+      <div><label for="ar-genres">Genres (mit Komma trennen)</label><input id="ar-genres" value=${genreInput} onInput=${(e) => setGenreInput(e.target.value)} placeholder="Jazz, Soul" /></div>
+      <div><label for="ar-email">E-Mail</label><input id="ar-email" type="email" value=${form.email} onInput=${set('email')} /></div>
+      <div><label for="ar-phone">Telefon</label><input id="ar-phone" type="tel" value=${form.phone} onInput=${set('phone')} /></div>
+      <div>
+        <label>Bewertung</label>
+        <div class="chip-row">
+          ${[1,2,3,4,5].map((n) => html`<button key=${n} type="button" class="chip ${form.rating >= n ? 'on' : ''}" style="min-width:44px;"
+            onClick=${() => setForm((prev) => ({ ...prev, rating: n }))} aria-label="${n} Sterne">★</button>`)}
+        </div>
+      </div>
+      <div>
+        <label>Favorit</label>
+        <button type="button" class="chip ${form.isFavorite ? 'on' : ''}" onClick=${() => setForm((prev) => ({ ...prev, isFavorite: !prev.isFavorite }))}>
+          ${form.isFavorite ? '❤️ Favorit' : '🤍 Kein Favorit'}
+        </button>
+      </div>
+      <div class="full"><label for="ar-notes">Notizen</label><textarea id="ar-notes" rows="3" value=${form.notes} onInput=${set('notes')} placeholder="Gage, Technik-Anforderungen, Historie …"></textarea></div>
+    </div>
+  <//>`;
+}
+
+/* ===== Ansicht: Übersicht (Dashboard) ===== */
+function DashboardView({ data, openEvent, go, onNewEvent }) {
+  const today = todayISO();
+  const upcoming = data.events
+    .filter((e) => e.date >= today && e.status !== 'cancelled')
+    .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+  const next30 = upcoming.filter((e) => (daysUntil(e.date) ?? 99) <= 30);
+  const soldTotal = next30.reduce((s, e) => s + (e.soldTickets || 0), 0);
+  const capTotal = next30.reduce((s, e) => s + (e.capacity || 0), 0);
+  const month = today.slice(0, 7);
+  const monthEvents = data.events.filter((e) => e.date.slice(0, 7) === month && e.status !== 'cancelled');
+  const monthRevenue = monthEvents.reduce((s, e) => s + (e.revenueActual || 0), 0);
+  const monthProfit = monthEvents.reduce((s, e) => s + (e.revenueActual || 0) - (e.costs || 0), 0);
+  const openTasks = data.tasks.filter((t) => !t.completed).sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
+  const overdueTasks = openTasks.filter((t) => t.dueDate && t.dueDate < today);
+  const gemaCritical = data.events
+    .filter((e) => ['red', 'amber'].includes(gemaAmpel(e)))
+    .sort((a, b) => (a.gemaDueDate || '9999').localeCompare(b.gemaDueDate || '9999'));
+
+  return html`<div class="grid" style="gap:18px;">
+    <div class="grid kpi-grid">
+      <div class="card kpi" onClick=${() => go('events')}>
+        <div class="kpi-label">🎭 Events (30 Tage)</div>
+        <div class="kpi-value">${next30.length}</div>
+        <div class="kpi-hint">${upcoming.length} insgesamt geplant</div>
+      </div>
+      <div class="card kpi" onClick=${() => go('events')}>
+        <div class="kpi-label">🎟️ Tickets verkauft</div>
+        <div class="kpi-value">${soldTotal}</div>
+        <div class="kpi-hint">${capTotal > 0 ? Math.round((soldTotal / capTotal) * 100) + '% Auslastung' : 'keine Events'}</div>
+      </div>
+      <div class="card kpi" onClick=${() => go('finance')}>
+        <div class="kpi-label">💶 Umsatz ${MONTHS[Number(month.slice(5)) - 1]}</div>
+        <div class="kpi-value">${fmtEUR(monthRevenue)}</div>
+        <div class="kpi-hint">Ergebnis: <span class=${monthProfit >= 0 ? 'pos' : 'neg'}>${fmtEUR(monthProfit)}</span></div>
+      </div>
+      <div class="card kpi" onClick=${() => go('tasks')}>
+        <div class="kpi-label">✅ Offene Aufgaben</div>
+        <div class="kpi-value">${openTasks.length}</div>
+        <div class="kpi-hint" style=${overdueTasks.length ? 'color:var(--red);font-weight:700;' : ''}>${overdueTasks.length} überfällig</div>
+      </div>
+      <div class="card kpi" onClick=${() => go('gema')}>
+        <div class="kpi-label">📄 GEMA-Fristen</div>
+        <div class="kpi-value">${gemaCritical.length}</div>
+        <div class="kpi-hint">brauchen Aufmerksamkeit</div>
+      </div>
+    </div>
+
+    <div class="grid two-col">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:8px;display:flex;align-items:center;">
+          <h3 style="flex:1;">Nächste Veranstaltungen</h3>
+          <button class="btn btn-sm btn-primary" onClick=${onNewEvent}>+ Neu</button>
+        </div>
+        ${upcoming.length === 0 ? html`<${Empty} icon="🎭" text="Keine anstehenden Veranstaltungen" hint="Lege mit „+ Neu“ die erste an." />` : null}
+        ${upcoming.slice(0, 6).map((e) => {
+          const venue = data.venues.find((v) => v.id === e.venueId);
+          const [, m, d] = e.date.split('-');
+          return html`<div key=${e.id} class="list-item" onClick=${() => openEvent(e.id)}>
+            <div class="date-chip"><div class="d">${Number(d)}</div><div class="m">${MONTHS[Number(m) - 1].slice(0, 3)}</div></div>
+            <div class="li-main">
+              <div class="li-title">${e.title}</div>
+              <div class="li-sub">${e.startTime} Uhr · ${venue ? venue.name : '—'}</div>
+            </div>
+            <div class="li-right"><${StatusBadge} status=${e.status} /></div>
+          </div>`;
+        })}
+      </div>
+
+      <div class="grid" style="gap:18px;">
+        <div class="card">
+          <div class="card-pad" style="padding-bottom:8px;"><h3>Dringende Aufgaben</h3></div>
+          ${openTasks.length === 0 ? html`<${Empty} icon="🎉" text="Alles erledigt!" />` : null}
+          ${openTasks.slice(0, 5).map((t) => {
+            const overdue = t.dueDate && t.dueDate < today;
+            const ev = data.events.find((e) => e.id === t.eventId);
+            return html`<div key=${t.id} class="list-item" onClick=${() => go('tasks')}>
+              <span class="dot ${overdue ? 'ampel-red' : 'ampel-amber'}"></span>
+              <div class="li-main">
+                <div class="li-title" style="font-weight:550;">${t.title}</div>
+                <div class="li-sub">${t.dueDate ? 'bis ' + fmtDate(t.dueDate) : ''} ${ev ? '· ' + ev.title : ''}</div>
+              </div>
+            </div>`;
+          })}
+        </div>
+        <div class="card">
+          <div class="card-pad" style="padding-bottom:8px;"><h3>GEMA im Blick</h3></div>
+          ${gemaCritical.length === 0 ? html`<${Empty} icon="✅" text="Keine kritischen GEMA-Fristen" />` : null}
+          ${gemaCritical.slice(0, 4).map((e) => html`
+            <div key=${e.id} class="list-item" onClick=${() => openEvent(e.id)}>
+              <span class="dot ampel-${gemaAmpel(e)}"></span>
+              <div class="li-main">
+                <div class="li-title" style="font-weight:550;">${e.title}</div>
+                <div class="li-sub">${GEMA_STATUS[e.gemaStatus]}${e.gemaDueDate ? ' · Frist ' + fmtDate(e.gemaDueDate) : ''}</div>
+              </div>
+            </div>
+          `)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Veranstaltungen ===== */
+function EventsView({ data, openEvent, onNewEvent }) {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('all');
+  const [venueId, setVenueId] = useState('all');
+  const [showPast, setShowPast] = useState(false);
+  const today = todayISO();
+  const filtered = data.events
+    .filter((e) => {
+      const q = query.trim().toLowerCase();
+      if (q && !(e.title + ' ' + e.subtitle).toLowerCase().includes(q)) return false;
+      if (status !== 'all' && e.status !== status) return false;
+      if (venueId !== 'all' && e.venueId !== venueId) return false;
+      if (!showPast && e.date < today) return false;
+      return true;
+    })
+    .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+
+  return html`<div>
+    <div class="filter-bar">
+      <input style="flex:1;min-width:180px;max-width:300px;" placeholder="🔍 Suchen …" value=${query} onInput=${(e) => setQuery(e.target.value)} />
+      <select value=${status} onChange=${(e) => setStatus(e.target.value)}>
+        <option value="all">Alle Status</option>
+        ${Object.keys(STATUS).map((k) => html`<option key=${k} value=${k}>${STATUS[k].label}</option>`)}
+      </select>
+      <select value=${venueId} onChange=${(e) => setVenueId(e.target.value)}>
+        <option value="all">Alle Spielorte</option>
+        ${data.venues.map((v) => html`<option key=${v.id} value=${v.id}>${v.name}</option>`)}
+      </select>
+      <button class="chip ${showPast ? 'on' : ''}" onClick=${() => setShowPast((p) => !p)}>Vergangene zeigen</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${onNewEvent}>+ Neue Veranstaltung</button>
+    </div>
+    <div class="card">
+      ${filtered.length === 0 ? html`<${Empty} icon="🎭" text="Keine Veranstaltungen gefunden" hint="Filter anpassen oder eine neue anlegen." />` : null}
+      ${filtered.map((e) => {
+        const venue = data.venues.find((v) => v.id === e.venueId);
+        const conflicts = findConflicts(e, data.events);
+        const soldPct = e.capacity > 0 ? Math.round((e.soldTickets / e.capacity) * 100) : 0;
+        const [, m, d] = e.date.split('-');
+        return html`<div key=${e.id} class="list-item" onClick=${() => openEvent(e.id)}>
+          <div class="date-chip"><div class="d">${Number(d)}</div><div class="m">${MONTHS[Number(m) - 1].slice(0, 3)}</div></div>
+          <div class="li-main">
+            <div class="li-title">${e.title} ${conflicts.length > 0 ? '⚠️' : ''}</div>
+            <div class="li-sub">${e.startTime} Uhr · ${venue ? venue.name : '—'} · ${e.soldTickets}/${e.capacity} Tickets (${soldPct}%)</div>
+            <div class="progress" style="margin-top:5px;max-width:220px;"><div style="width:${Math.min(soldPct, 100)}%;background:${venue ? venue.color : 'var(--accent)'};"></div></div>
+          </div>
+          <div class="li-right">
+            <${StatusBadge} status=${e.status} />
+            <div style="margin-top:5px;"><${Ampel} color=${gemaAmpel(e)} label="GEMA" /></div>
+          </div>
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Kalender ===== */
+function CalendarView({ data, openEvent, onNewEventAt }) {
+  const now = new Date();
+  const [ym, setYm] = useState([now.getFullYear(), now.getMonth()]);
+  const [year, monthIdx] = ym;
+  const today = todayISO();
+  const firstDow = (new Date(year, monthIdx, 1).getDay() + 6) % 7; // Mo = 0
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+  const cells = [];
+  const prevMonthDays = new Date(year, monthIdx, 0).getDate();
+  for (let i = firstDow - 1; i >= 0; i--) cells.push({ day: prevMonthDays - i, other: true, iso: null });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = year + '-' + String(monthIdx + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    cells.push({ day: d, other: false, iso });
+  }
+  let nextDay = 1;
+  while (cells.length % 7 !== 0) cells.push({ day: nextDay++, other: true, iso: null });
+  const eventsByDay = useMemo(() => {
+    const map = {};
+    for (const e of data.events) {
+      if (!map[e.date]) map[e.date] = [];
+      map[e.date].push(e);
+    }
+    for (const k in map) map[k].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    return map;
+  }, [data.events]);
+  const activeVenues = data.venues.filter((v) => data.events.some((e) => e.date.slice(0, 7) === (year + '-' + String(monthIdx + 1).padStart(2, '0')) && e.venueId === v.id));
+
+  return html`<div>
+    <div class="cal-head">
+      <button class="btn btn-icon" onClick=${() => setYm(([y, m]) => m === 0 ? [y - 1, 11] : [y, m - 1])} aria-label="Voriger Monat">‹</button>
+      <div class="cal-title">${MONTHS[monthIdx]} ${year}</div>
+      <button class="btn btn-icon" onClick=${() => setYm(([y, m]) => m === 11 ? [y + 1, 0] : [y, m + 1])} aria-label="Nächster Monat">›</button>
+      <button class="btn btn-sm" onClick=${() => setYm([now.getFullYear(), now.getMonth()])}>Heute</button>
+      <span class="spacer" style="flex:1;"></span>
+      <span style="font-size:12.5px;color:var(--muted);">Tag antippen = neue Veranstaltung</span>
+    </div>
+    <div class="cal-grid">
+      ${DOW.map((d) => html`<div key=${d} class="cal-dow">${d}</div>`)}
+      ${cells.map((c, i) => html`
+        <div key=${i} class="cal-cell ${c.other ? 'other' : ''} ${c.iso === today ? 'today' : ''}"
+          onClick=${() => { if (c.iso) onNewEventAt(c.iso); }}>
+          <div class="cal-daynum">${c.day}</div>
+          ${(c.iso && eventsByDay[c.iso] || []).map((e) => {
+            const venue = data.venues.find((v) => v.id === e.venueId);
+            const hasConflict = findConflicts(e, data.events).length > 0;
+            return html`<button key=${e.id} class="cal-ev" style="background:${venue ? venue.color : '#888'};${e.status === 'cancelled' ? 'opacity:0.45;text-decoration:line-through;' : ''}"
+              onClick=${(ev) => { ev.stopPropagation(); openEvent(e.id); }}>${hasConflict ? '⚠️ ' : ''}${e.startTime} ${e.title}</button>`;
+          })}
+        </div>
+      `)}
+    </div>
+    ${activeVenues.length > 0 ? html`<div class="legend">
+      ${activeVenues.map((v) => html`<span key=${v.id}><span class="dot" style="background:${v.color};"></span>${v.name}</span>`)}
+    </div>` : null}
+  </div>`;
+}
+
+/* ===== Ansicht: Spielorte ===== */
+function VenuesView({ data, onEdit, onNew, openEvent }) {
+  const today = todayISO();
+  return html`<div>
+    <div class="filter-bar">
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${onNew}>+ Neuer Spielort</button>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(290px,1fr));">
+      ${data.venues.length === 0 ? html`<div class="card"><${Empty} icon="📍" text="Noch keine Spielorte" /></div>` : null}
+      ${data.venues.map((v) => {
+        const vEvents = data.events.filter((e) => e.venueId === v.id && e.status !== 'cancelled');
+        const upcoming = vEvents.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+        return html`<div key=${v.id} class="card card-pad">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="dot" style="background:${v.color};width:14px;height:14px;"></span>
+            <h3 style="flex:1;margin:0;">${v.name}</h3>
+            <button class="btn btn-sm" onClick=${() => onEdit(v)}>Bearbeiten</button>
+          </div>
+          <p class="card-sub" style="margin:6px 0 12px;">${v.type} · ${v.city || 'Ohne Stadt'} · ${v.capacity} Plätze</p>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:6px;font-weight:600;">${upcoming.length} anstehende Events</div>
+          ${upcoming.slice(0, 3).map((e) => html`
+            <div key=${e.id} class="list-item" style="padding:8px 4px;min-height:40px;" onClick=${() => openEvent(e.id)}>
+              <div class="li-main">
+                <div class="li-title" style="font-size:13.5px;font-weight:550;">${e.title}</div>
+                <div class="li-sub">${fmtDateShort(e.date)} · ${e.startTime} Uhr</div>
+              </div>
+            </div>
+          `)}
+          ${v.notes ? html`<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;white-space:pre-wrap;">${v.notes}</p>` : null}
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Künstler ===== */
+function ArtistsView({ data, onEdit, onNew, openEvent }) {
+  const [query, setQuery] = useState('');
+  const [onlyFav, setOnlyFav] = useState(false);
+  const today = todayISO();
+  const filtered = data.artists.filter((a) => {
+    const q = query.trim().toLowerCase();
+    if (q && !(a.stageName + ' ' + a.contactName + ' ' + a.genres.join(' ')).toLowerCase().includes(q)) return false;
+    if (onlyFav && !a.isFavorite) return false;
+    return true;
+  }).sort((a, b) => (b.isFavorite - a.isFavorite) || a.stageName.localeCompare(b.stageName));
+
+  return html`<div>
+    <div class="filter-bar">
+      <input style="flex:1;min-width:180px;max-width:300px;" placeholder="🔍 Name oder Genre …" value=${query} onInput=${(e) => setQuery(e.target.value)} />
+      <button class="chip ${onlyFav ? 'on' : ''}" onClick=${() => setOnlyFav((p) => !p)}>❤️ Nur Favoriten</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" onClick=${onNew}>+ Neuer Künstler</button>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(290px,1fr));">
+      ${filtered.length === 0 ? html`<div class="card"><${Empty} icon="🎤" text="Keine Künstler gefunden" /></div>` : null}
+      ${filtered.map((a) => {
+        const aEvents = data.events.filter((e) => e.artistIds.includes(a.id) && e.date >= today && e.status !== 'cancelled')
+          .sort((x, y) => x.date.localeCompare(y.date));
+        return html`<div key=${a.id} class="card card-pad">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <h3 style="flex:1;margin:0;">${a.isFavorite ? '❤️ ' : ''}${a.stageName}</h3>
+            <button class="btn btn-sm" onClick=${() => onEdit(a)}>Bearbeiten</button>
+          </div>
+          <p class="card-sub" style="margin:4px 0 8px;">
+            ${'★'.repeat(a.rating)}${'☆'.repeat(5 - a.rating)} · ${a.genres.join(', ') || 'Ohne Genre'}
+          </p>
+          <div style="font-size:13px;color:var(--text-2);">
+            ${a.contactName ? html`<div>👤 ${a.contactName}</div>` : null}
+            ${a.email ? html`<div>✉️ <a href="mailto:${a.email}" style="color:var(--accent);">${a.email}</a></div>` : null}
+            ${a.phone ? html`<div>📞 <a href="tel:${a.phone}" style="color:var(--accent);">${a.phone}</a></div>` : null}
+          </div>
+          ${aEvents.length > 0 ? html`
+            <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-top:10px;">Nächste Auftritte</div>
+            ${aEvents.slice(0, 2).map((e) => html`
+              <div key=${e.id} class="list-item" style="padding:7px 4px;min-height:36px;" onClick=${() => openEvent(e.id)}>
+                <div class="li-sub" style="color:var(--text);">${fmtDateShort(e.date)} · ${e.title}</div>
+              </div>`)}
+          ` : null}
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Finanzen & GEMA ===== */
+function FinanceView({ data, openEvent }) {
+  const months = useMemo(() => {
+    const set = new Set(data.events.map((e) => e.date.slice(0, 7)));
+    return [...set].sort().reverse();
+  }, [data.events]);
+  const [month, setMonth] = useState(() => {
+    const cur = todayISO().slice(0, 7);
+    return months.includes(cur) ? cur : (months[0] || cur);
+  });
+  const events = data.events.filter((e) => e.date.slice(0, 7) === month && e.status !== 'cancelled')
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const totalRev = events.reduce((s, e) => s + (e.revenueActual || 0), 0);
+  const totalCost = events.reduce((s, e) => s + (e.costs || 0), 0);
+  const profit = totalRev - totalCost;
+  const byVenue = data.venues.map((v) => {
+    const ve = events.filter((e) => e.venueId === v.id);
+    return { venue: v, rev: ve.reduce((s, e) => s + (e.revenueActual || 0), 0), cost: ve.reduce((s, e) => s + (e.costs || 0), 0), count: ve.length };
+  }).filter((x) => x.count > 0);
+
+  return html`<div class="grid" style="gap:18px;">
+    <div class="filter-bar">
+      <label style="margin:0;" for="fin-month">Monat</label>
+      <select id="fin-month" value=${month} onChange=${(e) => setMonth(e.target.value)}>
+        ${(months.length ? months : [month]).map((m) => html`<option key=${m} value=${m}>${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}</option>`)}
+      </select>
+    </div>
+    <div class="grid kpi-grid">
+      <div class="card kpi"><div class="kpi-label">💶 Einnahmen</div><div class="kpi-value">${fmtEUR(totalRev)}</div><div class="kpi-hint">${events.length} Events</div></div>
+      <div class="card kpi"><div class="kpi-label">📉 Kosten</div><div class="kpi-value">${fmtEUR(totalCost)}</div></div>
+      <div class="card kpi"><div class="kpi-label">📊 Ergebnis</div><div class="kpi-value ${profit >= 0 ? 'pos' : 'neg'}">${fmtEUR(profit)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-pad" style="padding-bottom:0;"><h3>Events im ${MONTHS[Number(month.slice(5)) - 1]}</h3></div>
+      <div class="table-wrap card-pad" style="padding-top:8px;">
+        ${events.length === 0 ? html`<${Empty} icon="💶" text="Keine Events in diesem Monat" />` : html`
+        <table class="tbl">
+          <thead><tr><th>Event</th><th>Datum</th><th class="num">Tickets</th><th class="num">Einnahmen</th><th class="num">Kosten</th><th class="num">Ergebnis</th></tr></thead>
+          <tbody>
+            ${events.map((e) => {
+              const p = (e.revenueActual || 0) - (e.costs || 0);
+              return html`<tr key=${e.id} style="cursor:pointer;" onClick=${() => openEvent(e.id)}>
+                <td style="font-weight:600;">${e.title}</td>
+                <td>${fmtDate(e.date)}</td>
+                <td class="num">${e.soldTickets}/${e.capacity}</td>
+                <td class="num">${fmtEUR(e.revenueActual)}</td>
+                <td class="num">${fmtEUR(e.costs)}</td>
+                <td class="num ${p >= 0 ? 'pos' : 'neg'}">${fmtEUR(p)}</td>
+              </tr>`;
+            })}
+          </tbody>
+        </table>`}
+      </div>
+    </div>
+    ${byVenue.length > 0 ? html`<div class="card card-pad">
+      <h3>Nach Spielort</h3>
+      <div class="table-wrap" style="margin-top:8px;">
+        <table class="tbl">
+          <thead><tr><th>Spielort</th><th class="num">Events</th><th class="num">Einnahmen</th><th class="num">Ergebnis</th></tr></thead>
+          <tbody>
+            ${byVenue.map((x) => html`<tr key=${x.venue.id}>
+              <td><span class="dot" style="background:${x.venue.color};margin-right:8px;"></span>${x.venue.name}</td>
+              <td class="num">${x.count}</td>
+              <td class="num">${fmtEUR(x.rev)}</td>
+              <td class="num ${x.rev - x.cost >= 0 ? 'pos' : 'neg'}">${fmtEUR(x.rev - x.cost)}</td>
+            </tr>`)}
+          </tbody>
+        </table>
+      </div>
+    </div>` : null}
+  </div>`;
+}
+
+/* ===== Ansicht: GEMA ===== */
+function GemaView({ data, openEvent, onSetGemaStatus }) {
+  const relevant = data.events
+    .filter((e) => e.gemaStatus !== 'not_required')
+    .sort((a, b) => {
+      const order = { red: 0, amber: 1, green: 2, grey: 3 };
+      return order[gemaAmpel(a)] - order[gemaAmpel(b)] || (a.gemaDueDate || '9999').localeCompare(b.gemaDueDate || '9999');
+    });
+  return html`<div class="grid" style="gap:18px;">
+    <div class="info-box">GEMA-Ampel: <b style="color:var(--red);">Rot</b> = überfällig oder Problem, <b style="color:var(--amber);">Gelb</b> = Frist in den nächsten 7 Tagen, <b style="color:var(--green);">Grün</b> = im Plan. Status direkt hier umstellen.</div>
+    <div class="card">
+      ${relevant.length === 0 ? html`<${Empty} icon="📄" text="Keine GEMA-pflichtigen Events" />` : null}
+      ${relevant.map((e) => {
+        const days = daysUntil(e.gemaDueDate);
+        return html`<div key=${e.id} class="list-item" style="cursor:default;">
+          <span class="dot ampel-${gemaAmpel(e)}" style="width:12px;height:12px;"></span>
+          <div class="li-main" style="cursor:pointer;" onClick=${() => openEvent(e.id)}>
+            <div class="li-title">${e.title}</div>
+            <div class="li-sub">
+              ${fmtDateShort(e.date)}
+              ${e.gemaDueDate ? ' · Frist ' + fmtDate(e.gemaDueDate) + (days !== null && e.gemaStatus !== 'confirmed' ? (days < 0 ? ' — ' + Math.abs(days) + ' Tage überfällig!' : ' — in ' + days + ' Tagen') : '') : ' · keine Frist gesetzt'}
+            </div>
+          </div>
+          <select style="width:auto;" value=${e.gemaStatus} onChange=${(ev) => onSetGemaStatus(e.id, ev.target.value)} aria-label="GEMA-Status ändern">
+            ${Object.keys(GEMA_STATUS).map((k) => html`<option key=${k} value=${k}>${GEMA_STATUS[k]}</option>`)}
+          </select>
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Aufgaben ===== */
+function TasksView({ data, onToggleTask, onDeleteTask, onAddTask }) {
+  const [filter, setFilter] = useState('open');
+  const [catFilter, setCatFilter] = useState('all');
+  const [newTitle, setNewTitle] = useState('');
+  const [newEvent, setNewEvent] = useState('');
+  const [newDue, setNewDue] = useState('');
+  const today = todayISO();
+  const filtered = data.tasks.filter((t) => {
+    if (filter === 'open' && t.completed) return false;
+    if (filter === 'done' && !t.completed) return false;
+    if (catFilter !== 'all' && t.category !== catFilter) return false;
+    return true;
+  }).sort((a, b) => (a.completed - b.completed) || (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
+
+  const add = () => {
+    if (!newTitle.trim()) return;
+    onAddTask(newEvent || null, newTitle.trim(), newDue || null, catFilter !== 'all' ? catFilter : 'general');
+    setNewTitle(''); setNewDue('');
+  };
+
+  return html`<div class="grid" style="gap:16px;">
+    <div class="card card-pad">
+      <h3>Neue Aufgabe</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <input style="flex:2;min-width:200px;" placeholder="Was ist zu tun?" value=${newTitle} onInput=${(e) => setNewTitle(e.target.value)}
+          onKeyDown=${(e) => { if (e.key === 'Enter') add(); }} />
+        <select style="flex:1;min-width:150px;width:auto;" value=${newEvent} onChange=${(e) => setNewEvent(e.target.value)}>
+          <option value="">Ohne Event</option>
+          ${data.events.filter((e) => e.date >= today).map((e) => html`<option key=${e.id} value=${e.id}>${e.title}</option>`)}
+        </select>
+        <input style="width:auto;" type="date" value=${newDue} onInput=${(e) => setNewDue(e.target.value)} aria-label="Fällig am" />
+        <button class="btn btn-primary" onClick=${add}>Hinzufügen</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="chip-row">
+        ${[['open', 'Offen'], ['done', 'Erledigt'], ['all', 'Alle']].map(([k, l]) => html`
+          <button key=${k} class="chip ${filter === k ? 'on' : ''}" onClick=${() => setFilter(k)}>${l}</button>`)}
+      </div>
+      <span class="spacer"></span>
+      <select style="width:auto;" value=${catFilter} onChange=${(e) => setCatFilter(e.target.value)}>
+        <option value="all">Alle Kategorien</option>
+        ${Object.keys(CATEGORIES).map((k) => html`<option key=${k} value=${k}>${CATEGORIES[k].label}</option>`)}
+      </select>
+    </div>
+    <div class="card" style="padding:6px 16px;">
+      ${filtered.length === 0 ? html`<${Empty} icon="✅" text="Keine Aufgaben in dieser Ansicht" />` : null}
+      ${filtered.map((t) => {
+        const ev = data.events.find((e) => e.id === t.eventId);
+        const overdue = !t.completed && t.dueDate && t.dueDate < today;
+        return html`<div key=${t.id} class="task-row">
+          <button class="task-check ${t.completed ? 'done' : ''}" onClick=${() => onToggleTask(t.id)} aria-label="Erledigt umschalten">${t.completed ? '✓' : ''}</button>
+          <div style="flex:1;min-width:0;">
+            <div class="task-title ${t.completed ? 'done' : ''}">${t.title}</div>
+            <div class="task-meta">
+              <span class="cat-tag" style="background:${CATEGORIES[t.category].bg};color:${CATEGORIES[t.category].fg};">${CATEGORIES[t.category].label}</span>
+              ${t.dueDate ? html`<span style=${overdue ? 'color:var(--red);font-weight:700;' : ''}>bis ${fmtDate(t.dueDate)}${overdue ? ' — überfällig' : ''}</span>` : null}
+              ${ev ? html`<span>· ${ev.title}</span>` : null}
+              ${t.assignee ? html`<span>· ${t.assignee}</span>` : null}
+            </div>
+          </div>
+          <button class="x-btn" style="width:30px;height:30px;font-size:12px;" onClick=${() => onDeleteTask(t.id)} aria-label="Aufgabe löschen">✕</button>
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+/* ===== Ansicht: Einstellungen ===== */
+function SettingsView({ data, onImport, onResetDemo, onClearAll, toast }) {
+  const fileRef = useRef(null);
+  const doExport = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'kleinkunst-dashboard-backup-' + todayISO() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Backup heruntergeladen.');
+  };
+  const doImport = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed || !Array.isArray(parsed.events)) throw new Error('Format nicht erkannt');
+        onImport(parsed);
+      } catch (err) {
+        toast('Import fehlgeschlagen: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+  return html`<div class="grid" style="gap:18px;max-width:640px;">
+    <div class="card card-pad">
+      <h3>Datensicherung</h3>
+      <p class="card-sub">Alle Daten liegen lokal in diesem Browser. Regelmäßig ein Backup herunterladen — besonders vor Browser-Wechsel oder Aufräum-Aktionen.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onClick=${doExport}>⬇️ Backup herunterladen (JSON)</button>
+        <button class="btn" onClick=${() => fileRef.current && fileRef.current.click()}>⬆️ Backup einspielen</button>
+        <input ref=${fileRef} type="file" accept="application/json,.json" style="display:none;" onChange=${doImport} />
+      </div>
+    </div>
+    <div class="card card-pad">
+      <h3>Daten zurücksetzen</h3>
+      <p class="card-sub">„Demo-Daten laden“ ersetzt alles durch die Beispieldaten. „Alles löschen“ startet mit einer leeren App.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" onClick=${onResetDemo}>🔄 Demo-Daten laden</button>
+        <button class="btn btn-danger" onClick=${onClearAll}>🗑️ Alles löschen</button>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <h3>Über diese App</h3>
+      <p class="card-sub" style="margin-bottom:0;">
+        Kleinkunst Dashboard <b>Version ${APP_VERSION}</b> — Single-File-App, funktioniert offline, keine Anmeldung nötig.<br /><br />
+        <b>Neu in 2.0:</b> Alles ist bearbeitbar und wird automatisch gespeichert · Kalender mit Konflikt-Warnung bei Doppelbelegung ·
+        GEMA-Fristen-Ampel · Finanzübersicht mit Kosten und Ergebnis pro Event und Spielort · Checklisten mit Standard-Vorlage ·
+        Globale Suche · Mobil optimiert mit Navigationsleiste unten · Backup als Datei.
+      </p>
+    </div>
+  </div>`;
+}
+
+/* ===== Onboarding ===== */
+function Onboarding({ onDone }) {
+  return html`<${Modal} title="Willkommen im Kleinkunst Dashboard 2.0" onClose=${onDone}
+    footer=${html`<span class="spacer"></span><button class="btn btn-primary" onClick=${onDone}>Los geht's</button>`}>
+    <p style="margin-top:0;">Deine Zentrale für Veranstaltungen, Spielorte, Künstler, GEMA, Finanzen und Aufgaben.</p>
+    <div class="grid" style="gap:10px;">
+      <div class="info-box">✏️ <b>Alles bearbeitbar:</b> Events, Orte und Künstler anlegen und ändern — wird automatisch im Browser gespeichert.</div>
+      <div class="info-box">📅 <b>Kalender:</b> Einen Tag antippen legt direkt eine Veranstaltung an. Bei Doppelbelegung warnt die App.</div>
+      <div class="info-box">📄 <b>GEMA-Ampel:</b> Rot = überfällig, Gelb = Frist naht. Nichts mehr verpassen.</div>
+      <div class="info-box">💾 <b>Beispieldaten:</b> Die App startet mit Demo-Daten zum Ausprobieren. In den Einstellungen kannst du alles löschen oder ein Backup sichern.</div>
+    </div>
+  <//>`;
+}
+
+/* ===== Navigation ===== */
+const NAV = [
+  { id: 'dashboard', label: 'Übersicht', ico: '🏠' },
+  { id: 'events', label: 'Veranstaltungen', ico: '🎭' },
+  { id: 'calendar', label: 'Kalender', ico: '📅' },
+  { id: 'venues', label: 'Spielorte', ico: '📍' },
+  { id: 'artists', label: 'Künstler', ico: '🎤' },
+  { id: 'finance', label: 'Finanzen', ico: '💶' },
+  { id: 'gema', label: 'GEMA', ico: '📄' },
+  { id: 'tasks', label: 'Aufgaben', ico: '✅' },
+  { id: 'settings', label: 'Einstellungen', ico: '⚙️' },
+];
+const TITLES = Object.fromEntries(NAV.map((n) => [n.id, n.label]));
+const MOBILE_NAV = ['dashboard', 'events', 'calendar', 'tasks'];
+
+/* ===== Haupt-App ===== */
+function App() {
+  const [data, setData] = useState(loadData);
+  const [view, setView] = useState('dashboard');
+  const [detailId, setDetailId] = useState(null);
+  const [eventForm, setEventForm] = useState(null);   // null | {} | event
+  const [venueForm, setVenueForm] = useState(null);
+  const [artistForm, setArtistForm] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null); // {message, onYes}
+  const [query, setQuery] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
+  const { toasts, show: toast } = useToast();
+
+  useEffect(() => { saveData(data); }, [data]);
+
+  const go = (v) => { setView(v); setQuery(''); setMoreOpen(false); window.scrollTo(0, 0); };
+  const openEvent = (id) => setDetailId(id);
+  const detailEvent = detailId ? data.events.find((e) => e.id === detailId) : null;
+
+  /* --- Mutationen (immer funktionale Updates!) --- */
+  const saveEvent = (form) => {
+    if (form.id) {
+      setData((prev) => ({ ...prev, events: prev.events.map((e) => e.id === form.id ? { ...e, ...form } : e) }));
+      toast('Veranstaltung gespeichert.');
+    } else {
+      const newEvent = { ...form, id: uid('event') };
+      setData((prev) => ({ ...prev, events: [...prev.events, newEvent] }));
+      toast('Veranstaltung angelegt.');
+      setDetailId(newEvent.id);
+    }
+    setEventForm(null);
+  };
+  const deleteEvent = (id) => {
+    setConfirmAction({
+      message: 'Diese Veranstaltung und ihre Aufgaben wirklich löschen?',
+      onYes: () => {
+        setData((prev) => ({
+          ...prev,
+          events: prev.events.filter((e) => e.id !== id),
+          tasks: prev.tasks.filter((t) => t.eventId !== id),
+        }));
+        setDetailId(null);
+        toast('Veranstaltung gelöscht.');
+      },
+    });
+  };
+  const saveVenue = (form) => {
+    if (form.id) {
+      setData((prev) => ({ ...prev, venues: prev.venues.map((v) => v.id === form.id ? { ...v, ...form } : v) }));
+      toast('Spielort gespeichert.');
+    } else {
+      setData((prev) => ({ ...prev, venues: [...prev.venues, { ...form, id: uid('venue') }] }));
+      toast('Spielort angelegt.');
+    }
+    setVenueForm(null);
+  };
+  const saveArtist = (form) => {
+    if (form.id) {
+      setData((prev) => ({ ...prev, artists: prev.artists.map((a) => a.id === form.id ? { ...a, ...form } : a) }));
+      toast('Künstler gespeichert.');
+    } else {
+      setData((prev) => ({ ...prev, artists: [...prev.artists, { ...form, id: uid('artist') }] }));
+      toast('Künstler angelegt.');
+    }
+    setArtistForm(null);
+  };
+  const toggleTask = (id) => setData((prev) => ({
+    ...prev, tasks: prev.tasks.map((t) => t.id === id ? { ...t, completed: !t.completed } : t),
+  }));
+  const deleteTask = (id) => setData((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== id) }));
+  const addTask = (eventId, title, dueDate = null, category = 'general') => {
+    setData((prev) => ({ ...prev, tasks: [...prev.tasks, { id: uid('task'), title, dueDate, eventId, category, completed: false, assignee: '' }] }));
+    toast('Aufgabe hinzugefügt.');
+  };
+  const applyTemplate = (event) => {
+    const newTasks = TASK_TEMPLATE.map((tpl) => ({
+      id: uid('task'),
+      title: tpl.title,
+      dueDate: addDays(event.date, -tpl.offsetDays),
+      eventId: event.id,
+      category: tpl.category,
+      completed: false,
+      assignee: '',
+    }));
+    setData((prev) => ({ ...prev, tasks: [...prev.tasks, ...newTasks] }));
+    toast(TASK_TEMPLATE.length + ' Aufgaben aus Vorlage angelegt.');
+  };
+  const setGemaStatus = (id, status) => {
+    setData((prev) => ({ ...prev, events: prev.events.map((e) => e.id === id ? { ...e, gemaStatus: status } : e) }));
+    toast('GEMA-Status aktualisiert.');
+  };
+  const importData = (parsed) => {
+    setData({
+      venues: parsed.venues || [],
+      artists: parsed.artists || [],
+      events: parsed.events || [],
+      tasks: parsed.tasks || [],
+      settings: Object.assign({ onboardingDone: true }, parsed.settings),
+    });
+    toast('Backup eingespielt.');
+  };
+  const resetDemo = () => setConfirmAction({
+    message: 'Alle aktuellen Daten durch die Demo-Daten ersetzen?',
+    onYes: () => {
+      const fresh = JSON.parse(JSON.stringify(SEED));
+      fresh.settings.onboardingDone = true;
+      setData(fresh);
+      toast('Demo-Daten geladen.');
+    },
+  });
+  const clearAll = () => setConfirmAction({
+    message: 'Wirklich ALLE Daten unwiderruflich löschen?',
+    onYes: () => {
+      setData({ venues: [], artists: [], events: [], tasks: [], settings: { onboardingDone: true } });
+      toast('Alle Daten gelöscht.');
+    },
+  });
+  const onboardingDone = () => setData((prev) => ({ ...prev, settings: { ...prev.settings, onboardingDone: true } }));
+
+  /* --- Globale Suche --- */
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const res = [];
+    for (const e of data.events) {
+      if ((e.title + ' ' + e.subtitle).toLowerCase().includes(q)) res.push({ type: 'Event', label: e.title, sub: fmtDate(e.date), action: () => { setDetailId(e.id); } });
+    }
+    for (const v of data.venues) {
+      if ((v.name + ' ' + v.city).toLowerCase().includes(q)) res.push({ type: 'Spielort', label: v.name, sub: v.city, action: () => go('venues') });
+    }
+    for (const a of data.artists) {
+      if ((a.stageName + ' ' + a.contactName + ' ' + a.genres.join(' ')).toLowerCase().includes(q)) res.push({ type: 'Künstler', label: a.stageName, sub: a.genres.join(', '), action: () => go('artists') });
+    }
+    for (const t of data.tasks) {
+      if (t.title.toLowerCase().includes(q)) res.push({ type: 'Aufgabe', label: t.title, sub: t.dueDate ? 'bis ' + fmtDate(t.dueDate) : '', action: () => go('tasks') });
+    }
+    return res.slice(0, 8);
+  }, [query, data]);
+
+  const openTaskCount = data.tasks.filter((t) => !t.completed).length;
+  const gemaAlarmCount = data.events.filter((e) => gemaAmpel(e) === 'red').length;
+
+  const newEventAt = (iso) => setEventForm({ date: iso });
+
+  return html`<div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">🎭</div>
+        <div>
+          <div class="brand-name">Kleinkunst</div>
+          <div class="brand-sub">Dashboard 2.0</div>
+        </div>
+      </div>
+      <div class="nav-section">Planung</div>
+      ${NAV.slice(0, 5).map((n) => html`
+        <button key=${n.id} class="nav-item ${view === n.id ? 'active' : ''}" onClick=${() => go(n.id)}>
+          <span class="ico">${n.ico}</span>${n.label}
+        </button>`)}
+      <div class="nav-section">Verwaltung</div>
+      ${NAV.slice(5).map((n) => html`
+        <button key=${n.id} class="nav-item ${view === n.id ? 'active' : ''}" onClick=${() => go(n.id)}>
+          <span class="ico">${n.ico}</span>${n.label}
+          ${n.id === 'tasks' && openTaskCount > 0 ? html`<span class="nav-badge">${openTaskCount}</span>` : null}
+          ${n.id === 'gema' && gemaAlarmCount > 0 ? html`<span class="nav-badge">${gemaAlarmCount}</span>` : null}
+        </button>`)}
+      <div class="sidebar-foot">Version ${APP_VERSION} · Daten lokal gespeichert</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <h1>${TITLES[view]}</h1>
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input placeholder="Alles durchsuchen …" value=${query} onInput=${(e) => setQuery(e.target.value)} aria-label="Globale Suche" />
+          ${searchResults.length > 0 ? html`<div class="search-results">
+            ${searchResults.map((r, i) => html`
+              <button key=${i} class="search-result" onClick=${() => { r.action(); setQuery(''); }}>
+                <div style="min-width:0;">
+                  <div style="font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.label}</div>
+                  ${r.sub ? html`<div style="font-size:12px;color:var(--muted);">${r.sub}</div>` : null}
+                </div>
+                <span class="sr-type">${r.type}</span>
+              </button>`)}
+          </div>` : null}
+        </div>
+        <button class="btn btn-primary" style="flex-shrink:0;" onClick=${() => setEventForm({})}>
+          <span style="font-size:17px;line-height:1;">+</span><span class="hide-mobile"> Neue Veranstaltung</span>
+        </button>
+      </div>
+
+      <div class="content">
+        ${view === 'dashboard' ? html`<${DashboardView} data=${data} openEvent=${openEvent} go=${go} onNewEvent=${() => setEventForm({})} />` : null}
+        ${view === 'events' ? html`<${EventsView} data=${data} openEvent=${openEvent} onNewEvent=${() => setEventForm({})} />` : null}
+        ${view === 'calendar' ? html`<${CalendarView} data=${data} openEvent=${openEvent} onNewEventAt=${newEventAt} />` : null}
+        ${view === 'venues' ? html`<${VenuesView} data=${data} onEdit=${(v) => setVenueForm(v)} onNew=${() => setVenueForm({})} openEvent=${openEvent} />` : null}
+        ${view === 'artists' ? html`<${ArtistsView} data=${data} onEdit=${(a) => setArtistForm(a)} onNew=${() => setArtistForm({})} openEvent=${openEvent} />` : null}
+        ${view === 'finance' ? html`<${FinanceView} data=${data} openEvent=${openEvent} />` : null}
+        ${view === 'gema' ? html`<${GemaView} data=${data} openEvent=${openEvent} onSetGemaStatus=${setGemaStatus} />` : null}
+        ${view === 'tasks' ? html`<${TasksView} data=${data} onToggleTask=${toggleTask} onDeleteTask=${deleteTask} onAddTask=${addTask} />` : null}
+        ${view === 'settings' ? html`<${SettingsView} data=${data} onImport=${importData} onResetDemo=${resetDemo} onClearAll=${clearAll} toast=${toast} />` : null}
+      </div>
+    </div>
+
+    <button class="fab" onClick=${() => setEventForm({})} aria-label="Neue Veranstaltung">+</button>
+
+    <nav class="bottomnav">
+      <div class="bottomnav-inner">
+        ${MOBILE_NAV.map((id) => {
+          const n = NAV.find((x) => x.id === id);
+          return html`<button key=${id} class="bn-item ${view === id ? 'active' : ''}" onClick=${() => go(id)}>
+            ${id === 'tasks' && openTaskCount > 0 ? html`<span class="bn-dot"></span>` : null}
+            <span class="ico">${n.ico}</span>${n.label === 'Veranstaltungen' ? 'Events' : n.label}
+          </button>`;
+        })}
+        <button class="bn-item ${!MOBILE_NAV.includes(view) ? 'active' : ''}" onClick=${() => setMoreOpen(true)}>
+          <span class="ico">☰</span>Mehr
+        </button>
+      </div>
+    </nav>
+
+    ${moreOpen ? html`<${Modal} title="Weitere Bereiche" onClose=${() => setMoreOpen(false)}>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;">
+        ${NAV.filter((n) => !MOBILE_NAV.includes(n.id)).map((n) => html`
+          <button key=${n.id} class="btn" style="justify-content:flex-start;min-height:52px;" onClick=${() => go(n.id)}>
+            <span style="font-size:19px;">${n.ico}</span>${n.label}
+            ${n.id === 'gema' && gemaAlarmCount > 0 ? html`<span class="nav-badge" style="margin-left:auto;">${gemaAlarmCount}</span>` : null}
+          </button>`)}
+      </div>
+    <//>` : null}
+
+    ${detailEvent ? html`<${EventDetail}
+      event=${detailEvent} venues=${data.venues} artists=${data.artists} tasks=${data.tasks} allEvents=${data.events}
+      onClose=${() => setDetailId(null)}
+      onEdit=${(e) => { setDetailId(null); setEventForm(e); }}
+      onDelete=${deleteEvent}
+      onToggleTask=${toggleTask} onAddTask=${addTask} onDeleteTask=${deleteTask} onApplyTemplate=${applyTemplate}
+    />` : null}
+
+    ${eventForm !== null ? html`<${EventForm}
+      initial=${eventForm} venues=${data.venues} artists=${data.artists} allEvents=${data.events}
+      onSave=${saveEvent} onClose=${() => setEventForm(null)}
+    />` : null}
+
+    ${venueForm !== null ? html`<${VenueForm} initial=${venueForm} onSave=${saveVenue} onClose=${() => setVenueForm(null)} />` : null}
+    ${artistForm !== null ? html`<${ArtistForm} initial=${artistForm} onSave=${saveArtist} onClose=${() => setArtistForm(null)} />` : null}
+
+    ${confirmAction ? html`<${Modal} title="Bist du sicher?" onClose=${() => setConfirmAction(null)}
+      footer=${html`
+        <button class="btn" onClick=${() => setConfirmAction(null)}>Abbrechen</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onClick=${() => { confirmAction.onYes(); setConfirmAction(null); }}>Ja, fortfahren</button>
+      `}>
+      <p style="margin:0;">${confirmAction.message}</p>
+    <//>` : null}
+
+    ${!data.settings.onboardingDone ? html`<${Onboarding} onDone=${onboardingDone} />` : null}
+
+    <${Toasts} toasts=${toasts} />
+  </div>`;
+}
+
+render(html`<${App} />`, document.getElementById('app'));
+</script>
+</body>
+</html>
