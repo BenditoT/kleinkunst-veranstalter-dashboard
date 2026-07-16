@@ -176,16 +176,40 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page.getByRole("link", { name: "Zurueck zur Eventliste" })).toBeVisible();
   });
 
-  test("new event form updates slug preview and shows save feedback", async ({ page }) => {
+  test("new event form validates required fields before showing save feedback", async ({ page }) => {
     await unlock(page);
     await page.goto(appPath("/veranstaltungen/neu/"));
 
+    await expect(page.locator('select[name="venueId"]')).toHaveValue("venue-kupfersaal");
+    await expect(page.locator('select[name="artistId"]')).toHaveValue("artist-mara-sol");
+
+    await page.getByRole("button", { name: "Entwurf speichern" }).click();
+    const eventForm = page.locator("form").filter({
+      has: page.getByRole("button", { name: "Entwurf speichern" }),
+    });
+    await expect(eventForm.getByRole("alert")).toContainText("Bitte korrigieren Sie die markierten Felder");
+    await expect(page.locator('input[name="startTime"]')).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByText("Bitte geben Sie eine gültige Beginnzeit", { exact: false })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveCount(0);
+
     await page.locator('input[name="title"]').fill("Test Gala");
     await page.locator('input[name="date"]').fill("2026-09-12");
+    await page.locator('input[name="startTime"]').fill("20:00");
+    await page.locator('input[name="endTime"]').fill("19:30");
+    await page.locator('input[name="ticketPrice"]').fill("28.50");
+    await page.locator('input[name="capacity"]').fill("320");
     await expect(page.locator("body")).toContainText("2026-09-12-test-gala");
 
     await page.getByRole("button", { name: "Entwurf speichern" }).click();
+    await expect(page.getByText("Die Endzeit muss nach der Beginnzeit liegen.")).toBeVisible();
+    await expect(page.getByRole("status")).toHaveCount(0);
+
+    await page.locator('input[name="endTime"]').fill("22:00");
+    await page.getByRole("button", { name: "Entwurf speichern" }).click();
     await expect(page.getByRole("status")).toContainText('Entwurf "Test Gala" wurde lokal');
+
+    await page.locator('input[name="capacity"]').fill("0");
+    await expect(page.getByRole("status")).toHaveCount(0);
 
     await page.getByRole("link", { name: "Abbrechen" }).click();
     await expect(page).toHaveURL(/\/veranstaltungen\/$/);

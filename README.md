@@ -2,6 +2,8 @@
 
 Next.js-App fuer deutsche Kleinkunst-Veranstalter mit Multi-Venue-Planung, Event-Management, Kalender, GEMA-, Newsletter-, Presse-, Ticketing- und Finanzmodulen.
 
+Der aktuelle Umsetzungs- und Abnahmeplan steht im [Sprintplan](docs/sprints/README.md).
+
 ## Architekturstand
 
 Der Backend-Default ist aktuell **Google Cloud**:
@@ -23,10 +25,14 @@ Cloud-SQL-Details:
 
 ## Getting Started
 
-Dependencies installieren:
+Voraussetzung ist Node.js `>=20.19.0`; fuer lokale Entwicklung und CI ist
+`24.14.0` in `.nvmrc` festgelegt.
+
+Node-Version aktivieren und Dependencies reproduzierbar installieren:
 
 ```bash
-npm install
+nvm use
+npm ci
 ```
 
 Entwicklungsserver starten:
@@ -37,21 +43,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Tests ausfuehren:
+Die vollstaendige lokale Qualitaetskette entspricht der PR-CI und prueft in
+dieser Reihenfolge Lint, TypeScript, Unit-Tests und den Produktions-Build:
 
 ```bash
-npm test
+npm run quality
 ```
 
-Linting:
+Einzelne Gates lassen sich weiterhin separat ausfuehren:
 
 ```bash
 npm run lint
-```
-
-Build:
-
-```bash
+npm run typecheck
+npm test
 npm run build
 ```
 
@@ -78,5 +82,5 @@ Kopiere `.env.example` nach `.env.local` und fuelle die passenden Provider-Werte
 
 ## Hinweise
 
-- Die lokale Node-Version sollte mindestens `20.19.0` sein. In diesem Workspace wurde mit Node `24.14.0` verifiziert.
+- Die unterstuetzte Node-Untergrenze steht in `package.json`; `.nvmrc` pinnt die Referenzversion fuer lokale Checks und GitHub Actions.
 - UI-Code soll provider-neutral bleiben und keine direkten Cloud-SDK-Imports enthalten.
