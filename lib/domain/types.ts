@@ -2,7 +2,34 @@ export type EventStatus = "draft" | "planned" | "published" | "completed" | "can
 
 export type GemaStatus = "not_required" | "pending" | "submitted" | "confirmed" | "problem";
 
-export type Venue = {
+/**
+ * Rollenmodell laut Sprintplan (Sprint 2) und kanonischer Migration
+ * `db/migrations/202607080001_core_schema.sql` (Entscheidung O1).
+ * Reihenfolge = absteigende Rechte.
+ */
+export type OrganizationRole = "owner" | "admin" | "manager" | "member" | "viewer";
+
+export const organizationRoles: readonly OrganizationRole[] = [
+  "owner",
+  "admin",
+  "manager",
+  "member",
+  "viewer",
+] as const;
+
+export function isOrganizationRole(value: string): value is OrganizationRole {
+  return (organizationRoles as readonly string[]).includes(value);
+}
+
+/**
+ * Jede mandantenbezogene Entität trägt ihre Organisation (O3).
+ * Entspricht `organization_id` in der Migration.
+ */
+export type TenantScoped = {
+  organizationId: string;
+};
+
+export type Venue = TenantScoped & {
   id: string;
   name: string;
   city: string;
@@ -14,7 +41,7 @@ export type Venue = {
   searchTerms: string[];
 };
 
-export type Artist = {
+export type Artist = TenantScoped & {
   id: string;
   stageName: string;
   contactName: string;
@@ -23,7 +50,7 @@ export type Artist = {
   isFavorite: boolean;
 };
 
-export type Event = {
+export type Event = TenantScoped & {
   id: string;
   title: string;
   subtitle: string;
@@ -43,7 +70,7 @@ export type Event = {
   slug: string;
 };
 
-export type Task = {
+export type Task = TenantScoped & {
   id: string;
   title: string;
   dueDate: string;
@@ -58,4 +85,14 @@ export type SearchResult = {
   label: string;
   description: string;
   href: string;
+};
+
+/**
+ * Ein Eintrag des vorberechneten Suchindex (O3.4). Enthält bewusst nur
+ * Anzeige- und Suchfelder, damit die Client-Topbar nicht den kompletten
+ * Datenbestand ins Bundle zieht.
+ */
+export type SearchIndexEntry = SearchResult & {
+  kind: "event" | "artist" | "venue";
+  keywords: string;
 };

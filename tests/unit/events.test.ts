@@ -6,7 +6,7 @@ import {
   filterEvents,
   getEventStatusTransitionOptions,
 } from "../../lib/domain/events";
-import { sampleEvents } from "../../lib/domain/sample-data";
+import { sampleEvents, sampleVenues } from "../../lib/domain/sample-data";
 
 describe("event domain helpers", () => {
   it("filters events by search query, status and venue", () => {
@@ -37,7 +37,10 @@ describe("event domain helpers", () => {
       },
     ];
 
-    const conflicts = detectVenueConflicts(conflictEvents, { bufferMinutes: 45 });
+    const conflicts = detectVenueConflicts(conflictEvents, {
+      bufferMinutes: 45,
+      venues: sampleVenues,
+    });
 
     expect(conflicts).toEqual([
       {

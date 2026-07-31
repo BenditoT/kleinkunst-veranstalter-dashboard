@@ -20,7 +20,8 @@ const weekdayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 export function CalendarWorkspace() {
   const [weekOffset, setWeekOffset] = useState(0);
-  const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45 });
+  // TODO(Sonnet-Sprint): auf den Datenport umstellen (siehe sprint sonnet event app.md).
+  const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45, venues: sampleVenues });
   // Einmal nach Datum gruppieren statt die komplette Eventliste 7x/Render
   // (Wochentabelle) + 7x (Wochenzähler) zu durchsuchen (S5).
   const eventsByDate = useMemo(() => {
@@ -123,8 +124,9 @@ export function CalendarWorkspace() {
 
                 return (
                   <div key={day.date} className="min-h-[360px] border-r border-slate-100 p-3 last:border-r-0">
+                    {/* text-slate-600 statt -400: slate-400 auf Weiß ~2,6:1, WCAG AA verfehlt (O5). */}
                     {dayEvents.length === 0 ? (
-                      <div className="rounded-md border border-dashed border-slate-200 p-3 text-sm text-slate-400">
+                      <div className="rounded-md border border-dashed border-slate-200 p-3 text-sm text-slate-600">
                         Kein Termin
                       </div>
                     ) : (

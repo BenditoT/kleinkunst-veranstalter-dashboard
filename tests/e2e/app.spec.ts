@@ -1,7 +1,10 @@
 import { expect, type Page, test } from "@playwright/test";
 import { GITHUB_PAGES_BASE_PATH } from "../../lib/config/site.mjs";
+import { resolveDemoPin } from "../../lib/auth/pin";
 
-const pin = "69198";
+// Die PIN steht nicht mehr im Test (O4): Build und Test lesen dieselbe
+// Quelle, damit eine Rotation über NEXT_PUBLIC_DEMO_PIN die CI nicht rot macht.
+const pin = resolveDemoPin({ NEXT_PUBLIC_DEMO_PIN: process.env.NEXT_PUBLIC_DEMO_PIN });
 const basePath = GITHUB_PAGES_BASE_PATH;
 
 const routes: Array<{ path: string; text: string }> = [
@@ -248,8 +251,11 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page.getByRole("heading", { name: "Kupfersaal Leipzig" })).toBeVisible();
 
     await page.goto(appPath("/"));
-    await page.getByRole("button", { name: "Theme umschalten" }).click();
-    await expect(page.locator("html")).toHaveClass(/dark/);
+    // O5: Der Dark-Mode-Toggle war eine Attrappe (0 dark:-Utilities im Code)
+    // und wurde entfernt. Der Test hält fest, dass er nicht zurückkommt,
+    // solange kein echter Dark-Mode umgesetzt ist.
+    await expect(page.getByRole("button", { name: "Theme umschalten" })).toHaveCount(0);
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
 
     await page.getByRole("button", { name: "Benachrichtigungen" }).click();
     await expect(page.getByText("3 GEMA-Meldungen fällig")).toBeVisible();

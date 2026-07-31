@@ -1,6 +1,27 @@
-import type { Artist, Event, Task, Venue } from "./types";
+import { DEMO_ORGANIZATION_ID } from "../data/context";
+import type { Artist, Event, Task, TenantScoped, Venue } from "./types";
 
-export const sampleVenues: Venue[] = [
+/**
+ * Demo-Datenbestand (O3).
+ *
+ * Diese Datei ist seit dem Opus-Sprint KEINE UI-Abhängigkeit mehr, sondern
+ * der Datensatz hinter dem In-Memory-Adapter des Datenports
+ * (`lib/data/in-memory-adapter.ts`). UI-Code holt Daten über
+ * `lib/data` — siehe `docs/architecture/data-port.md`.
+ *
+ * Alle Datensätze hängen an der Demo-Organisation. `withOrganization`
+ * hängt die `organizationId` an, damit sie nicht 23-mal wiederholt werden
+ * muss — und damit Tests denselben Bestand unter einer zweiten Org-ID
+ * anlegen können, um Mandantentrennung zu beweisen.
+ */
+export function withOrganization<T extends TenantScoped>(
+  organizationId: string,
+  rows: Array<Omit<T, "organizationId">>,
+): T[] {
+  return rows.map((row) => ({ ...row, organizationId }) as T);
+}
+
+export const sampleVenues: Venue[] = withOrganization<Venue>(DEMO_ORGANIZATION_ID, [
   {
     id: "venue-kupfersaal",
     name: "Kupfersaal Leipzig",
@@ -45,9 +66,9 @@ export const sampleVenues: Venue[] = [
     bookedSlots: 8,
     searchTerms: ["chanson", "lesung", "theater"],
   },
-];
+]);
 
-export const sampleArtists: Artist[] = [
+export const sampleArtists: Artist[] = withOrganization<Artist>(DEMO_ORGANIZATION_ID, [
   {
     id: "artist-mara-sol",
     stageName: "Mara Sol",
@@ -80,9 +101,9 @@ export const sampleArtists: Artist[] = [
     rating: 5,
     isFavorite: false,
   },
-];
+]);
 
-export const sampleEvents: Event[] = [
+export const sampleEvents: Event[] = withOrganization<Event>(DEMO_ORGANIZATION_ID, [
   {
     id: "event-jazz-im-hof",
     title: "Jazz im Hof",
@@ -197,9 +218,9 @@ export const sampleEvents: Event[] = [
     gemaDueDate: null,
     slug: "2026-07-29-nacht-der-lieder",
   },
-];
+]);
 
-export const sampleTasks: Task[] = [
+export const sampleTasks: Task[] = withOrganization<Task>(DEMO_ORGANIZATION_ID, [
   {
     id: "task-1",
     title: "GEMA-Musikfolge für Jazz im Hof anfordern",
@@ -281,4 +302,4 @@ export const sampleTasks: Task[] = [
     completed: true,
     assignee: "Mira",
   },
-];
+]);

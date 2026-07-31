@@ -5,15 +5,18 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { detectVenueConflicts, filterEvents, getArtistNames, type EventFilters, type VenueConflict } from "@/lib/domain/events";
 import { eventStatusFilterOptions, formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
-import { sampleArtists, sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
+import type { Artist, Event, Venue } from "@/lib/domain/types";
 
 type EventsWorkspaceProps = {
   filters: EventFilters;
+  events: Event[];
+  venues: Venue[];
+  artists: Artist[];
 };
 
-export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
-  const filteredEvents = filterEvents(sampleEvents, filters);
-  const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45 });
+export function EventsWorkspace({ filters, events, venues, artists }: EventsWorkspaceProps) {
+  const filteredEvents = filterEvents(events, filters);
+  const conflicts = detectVenueConflicts(events, { bufferMinutes: 45, venues });
   const publishedCount = filteredEvents.filter((event) => event.status === "published").length;
 
   return (
@@ -46,7 +49,7 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 p-4">
-            <EventFilters filters={filters} />
+            <EventFilters filters={filters} venues={venues} />
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] border-collapse text-left text-sm">
@@ -75,8 +78,8 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
                         {event.startTime}-{event.endTime}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-slate-600">{getVenueName(event, sampleVenues)}</td>
-                    <td className="px-5 py-4 text-slate-600">{getArtistNames(event.artistIds, sampleArtists)}</td>
+                    <td className="px-5 py-4 text-slate-600">{getVenueName(event, venues)}</td>
+                    <td className="px-5 py-4 text-slate-600">{getArtistNames(event.artistIds, artists)}</td>
                     <td className="px-5 py-4 font-semibold text-slate-800">{formatCurrency(event.revenueActual)}</td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
@@ -143,11 +146,11 @@ function EventStat({
   );
 }
 
-function EventFilters({ filters }: { filters: EventFilters }) {
+function EventFilters({ filters, venues }: { filters: EventFilters; venues: Venue[] }) {
   return (
     <form className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_200px_220px_auto]">
       <label className="relative block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
         <input
           name="q"
           defaultValue={filters.query}
@@ -172,7 +175,7 @@ function EventFilters({ filters }: { filters: EventFilters }) {
         className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
       >
         <option value="all">Alle Spielorte</option>
-        {sampleVenues.map((venue) => (
+        {venues.map((venue) => (
           <option key={venue.id} value={venue.id}>
             {venue.name}
           </option>

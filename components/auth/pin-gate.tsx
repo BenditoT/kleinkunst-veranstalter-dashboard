@@ -3,15 +3,23 @@
 import { LockKeyhole } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 
-import { DEMO_LOGIN_PIN, isValidDemoPin } from "@/lib/auth/pin";
+import { DEMO_PIN_LENGTH, getDemoConfig, isValidDemoPin } from "@/lib/auth/pin";
 
 const storageKey = "kleinkunst-dashboard-pin-session";
-const configuredPin = process.env.NEXT_PUBLIC_DEMO_PIN ?? DEMO_LOGIN_PIN;
+const { pin: configuredPin, demoMode } = getDemoConfig();
 
 type PinGateProps = {
   children: ReactNode;
 };
 
+/**
+ * DEMO-FEATURE (O4), abgeschaltet durch `NEXT_PUBLIC_DEMO_MODE=false`.
+ *
+ * Sichtschutz für die öffentliche GitHub-Pages-Demo — kein Auth. Der
+ * statische Export liefert alle Inhalte ohnehin ungeschützt aus (jede
+ * URL ist direkt abrufbar). Ab Sprint 2 ersetzt der Auth-Port dieses
+ * Gate; siehe docs/architecture/auth-port.md und lib/auth/pin.ts.
+ */
 export function PinGate({ children }: PinGateProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
@@ -35,6 +43,12 @@ export function PinGate({ children }: PinGateProps) {
 
     setError("PIN ist falsch.");
     setPin("");
+  }
+
+  // Demo-Modus aus: das Gate verschwindet vollständig. Der Schutz kommt
+  // dann aus dem Auth-Port (Sprint 2), nicht mehr aus dieser Komponente.
+  if (!demoMode) {
+    return children;
   }
 
   if (!hasCheckedSession) {
@@ -62,7 +76,7 @@ export function PinGate({ children }: PinGateProps) {
             <input
               value={pin}
               onChange={(event) => {
-                setPin(event.target.value.replace(/\D/g, "").slice(0, 5));
+                setPin(event.target.value.replace(/\D/g, "").slice(0, DEMO_PIN_LENGTH));
                 setError("");
               }}
               inputMode="numeric"

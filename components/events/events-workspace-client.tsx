@@ -4,9 +4,21 @@ import { useSearchParams } from "next/navigation";
 
 import { EventsWorkspace } from "@/components/events/events-workspace";
 import type { EventFilters } from "@/lib/domain/events";
-import type { EventStatus } from "@/lib/domain/types";
+import type { Artist, Event, EventStatus, Venue } from "@/lib/domain/types";
 
-export function EventsWorkspaceClient() {
+type EventsWorkspaceClientProps = {
+  events: Event[];
+  venues: Venue[];
+  artists: Artist[];
+};
+
+/**
+ * Liest nur die Filter aus der URL. Die Daten kommen als Props von der
+ * Server-Komponente, die sie über den Datenport für die Organisation aus
+ * der Session geladen hat (O3) — der Client bestimmt also nie, welche
+ * Organisation er sieht, sondern nur, wie gefiltert wird.
+ */
+export function EventsWorkspaceClient({ events, venues, artists }: EventsWorkspaceClientProps) {
   const searchParams = useSearchParams();
   const filters: EventFilters = {
     query: searchParams.get("q") ?? undefined,
@@ -14,7 +26,7 @@ export function EventsWorkspaceClient() {
     venueId: searchParams.get("venue") ?? undefined,
   };
 
-  return <EventsWorkspace filters={filters} />;
+  return <EventsWorkspace filters={filters} events={events} venues={venues} artists={artists} />;
 }
 
 function parseStatus(status: string | undefined): EventStatus | "all" | undefined {

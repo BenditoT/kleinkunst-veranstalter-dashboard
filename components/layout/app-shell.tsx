@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Database, Landmark } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { getDataPort, getRequestOrganizationContext } from "@/lib/data";
 import { navigationItems, type ModuleId } from "@/lib/domain/module-content";
 
 import { SidebarCollapseButton, SidebarRestoreButton } from "./sidebar-collapse-controls";
@@ -12,7 +13,15 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-export function AppShell({ activeItem, children }: AppShellProps) {
+/**
+ * Server-Komponente. Sie baut den Suchindex einmal über den Datenport für
+ * die Organisation aus der Session und reicht ihn an die Client-Topbar
+ * weiter (O3.4). Vorher importierte die Topbar den kompletten
+ * Datenbestand direkt und zog ihn damit in jedes Seiten-Bundle.
+ */
+export async function AppShell({ activeItem, children }: AppShellProps) {
+  const context = await getRequestOrganizationContext();
+  const searchIndex = await getDataPort().buildSearchIndex(context);
   return (
     <div className="min-h-screen text-slate-950">
       <a
@@ -78,7 +87,7 @@ export function AppShell({ activeItem, children }: AppShellProps) {
       </aside>
 
       <div className="app-content lg:pl-[268px]">
-        <Topbar activeItem={activeItem} />
+        <Topbar activeItem={activeItem} searchIndex={searchIndex} />
         <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <nav className="flex gap-2 overflow-x-auto" aria-label="Mobile Navigation">
             {navigationItems.map((item) => {

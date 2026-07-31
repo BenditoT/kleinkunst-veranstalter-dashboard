@@ -2,24 +2,27 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, CalendarDays, Command, Landmark, Menu, Moon, Plus, Search, Sun, X } from "lucide-react";
+import { Bell, CalendarDays, Command, Landmark, Menu, Plus, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
-import { groupGlobalSearchResults } from "@/lib/domain/dashboard";
+import { groupSearchIndex } from "@/lib/domain/dashboard";
 import { navigationItems, type ModuleId } from "@/lib/domain/module-content";
-import { sampleArtists, sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
-import type { SearchResult } from "@/lib/domain/types";
+import type { SearchIndexEntry, SearchResult } from "@/lib/domain/types";
 
 type TopbarProps = {
   activeItem: ModuleId;
+  /**
+   * Vorberechneter, bereits mandantengefilterter Suchindex aus dem
+   * Datenport (O3.4). Die Topbar kennt keine Datenquelle mehr.
+   */
+  searchIndex: SearchIndexEntry[];
 };
 
-export function Topbar({ activeItem }: TopbarProps) {
+export function Topbar({ activeItem, searchIndex }: TopbarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [dark, setDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const activeLabel = navigationItems.find((item) => item.id === activeItem)?.label ?? "Übersicht";
@@ -29,20 +32,7 @@ export function Topbar({ activeItem }: TopbarProps) {
   const notificationsPanelRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
-
-  const searchResults = useMemo(
-    () =>
-      groupGlobalSearchResults({
-        query,
-        events: sampleEvents,
-        artists: sampleArtists,
-        venues: sampleVenues,
-      }),
-    [query],
-  );
+  const searchResults = useMemo(() => groupSearchIndex(searchIndex, query), [searchIndex, query]);
 
   const flatResults = useMemo<SearchResult[]>(
     () => [...searchResults.events, ...searchResults.artists, ...searchResults.venues],
@@ -169,7 +159,7 @@ export function Topbar({ activeItem }: TopbarProps) {
         </div>
 
         <div ref={searchContainerRef} className="relative ml-auto hidden w-full max-w-md md:block xl:max-w-2xl">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
             ref={searchInputRef}
             value={query}
@@ -241,15 +231,13 @@ export function Topbar({ activeItem }: TopbarProps) {
           <span className="whitespace-nowrap">Neue Veranstaltung</span>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setDark((value) => !value)}
-          className="grid h-11 w-11 place-items-center rounded-md border border-slate-200 bg-white text-slate-700"
-          aria-label="Theme umschalten"
-        >
-          {dark ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
-        </button>
-
+        {/*
+          Dark-Mode-Toggle entfernt (Entscheidung O5, siehe
+          docs/architecture/theming.md): Der Schalter war eine Attrappe —
+          `darkMode: "class"` und ein vollständiger `.dark`-Variablensatz
+          existieren, aber keine einzige Komponente nutzt `dark:`-Utilities.
+          Ein echter Dark-Mode ist als Backlog-Punkt dokumentiert.
+        */}
         <button
           ref={notificationsButtonRef}
           type="button"
@@ -364,7 +352,8 @@ function SearchGroup({
 
   return (
     <section className="py-1">
-      <p className="px-2 py-1 text-xs font-semibold uppercase tracking-normal text-slate-400">{title}</p>
+      {/* text-slate-600 statt -400: auf Weiß erreicht slate-400 nur ~2,6:1 (O5). */}
+      <p className="px-2 py-1 text-xs font-semibold uppercase tracking-normal text-slate-600">{title}</p>
       {items.map((item) => (
         <Link
           key={item.id}

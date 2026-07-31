@@ -73,8 +73,17 @@ GitHub Pages Demo-Deploy:
 npm run build:pages
 ```
 
-Der statische GitHub-Pages-Build nutzt einen clientseitigen Demo-PIN. Der
-aktuelle PIN ist `69198`.
+Der statische GitHub-Pages-Build nutzt einen clientseitigen Demo-PIN. Der Wert
+steht **nicht** im Code, sondern kommt aus `NEXT_PUBLIC_DEMO_PIN` (lokal ueber
+`.env.local`, in GitHub Actions ueber die Repository-Variable `DEMO_PIN`). Ohne
+Konfiguration greift der Fallback aus `lib/auth/pin.ts`. Rotation braucht also
+keine Code-Aenderung.
+
+Der PIN ist **kein Zugriffsschutz**: der statische Export liefert alle Seiten und
+Daten ohnehin ueber ihre direkte URL aus. Er ist Sichtschutz fuer eine reine
+Demo mit erfundenen Daten. Der echte Schutz kommt mit dem Auth-Port
+(`docs/architecture/auth-port.md`, Sprint 2). Mit `NEXT_PUBLIC_DEMO_MODE=false`
+laesst sich der Demo-Modus komplett abschalten.
 
 ## Environment
 

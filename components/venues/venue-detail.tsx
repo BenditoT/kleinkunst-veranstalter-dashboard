@@ -117,7 +117,7 @@ function SummaryCard({
       <Icon className="h-5 w-5 text-teal-600" aria-hidden="true" />
       <p className="mt-3 text-sm font-medium text-slate-500">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-slate-950">{value}</p>
-      <ArrowUpRight className="mt-3 h-4 w-4 text-slate-400" aria-hidden="true" />
+      <ArrowUpRight className="mt-3 h-4 w-4 text-slate-500" aria-hidden="true" />
     </div>
   );
 }

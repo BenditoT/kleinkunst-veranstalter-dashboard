@@ -6,18 +6,28 @@ import { getArtistNames, getEventStatusTransitionOptions } from "@/lib/domain/ev
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
 import { getReferenceNow } from "@/lib/domain/now";
-import { sampleArtists, sampleEvents, sampleTasks, sampleVenues } from "@/lib/domain/sample-data";
-import type { Event } from "@/lib/domain/types";
+import type { Artist, Event, Task, Venue } from "@/lib/domain/types";
 
 type EventDetailProps = {
   event: Event;
+  events: Event[];
+  venues: Venue[];
+  artists: Artist[];
+  tasks: Task[];
   now?: Date;
 };
 
-export function EventDetail({ event, now = getReferenceNow() }: EventDetailProps) {
-  const artistNames = getArtistNames(event.artistIds, sampleArtists);
-  const eventTasks = sampleTasks.filter((task) => task.eventId === event.id);
-  const deadlines = findGemaDeadlines(sampleEvents, now);
+export function EventDetail({
+  event,
+  events,
+  venues,
+  artists,
+  tasks,
+  now = getReferenceNow(),
+}: EventDetailProps) {
+  const artistNames = getArtistNames(event.artistIds, artists);
+  const eventTasks = tasks.filter((task) => task.eventId === event.id);
+  const deadlines = findGemaDeadlines(events, now);
   const eventDeadline = deadlines.find((deadline) => deadline.eventId === event.id);
   const transitionOptions = getEventStatusTransitionOptions(event.status);
 
@@ -38,7 +48,7 @@ export function EventDetail({ event, now = getReferenceNow() }: EventDetailProps
             <p className="mt-2 text-base text-slate-600">{event.subtitle}</p>
             <div className="mt-5 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
               <InfoTile label="Datum" value={`${formatDate(event.date)}, ${event.startTime}-${event.endTime}`} />
-              <InfoTile label="Spielort" value={getVenueName(event, sampleVenues)} />
+              <InfoTile label="Spielort" value={getVenueName(event, venues)} />
               <InfoTile label="Künstler" value={artistNames} />
             </div>
           </div>

@@ -1,3 +1,36 @@
+-- =====================================================================
+-- ARCHIVIERT — NICHT AUSFUEHREN (Entscheidung O1, 31.07.2026)
+-- =====================================================================
+-- Diese Datei war einer von zwei divergierenden Schema-Staenden. Sie ist
+-- NICHT mehr die Wahrheit und liegt bewusst nicht mehr unter
+-- `supabase/migrations/`, damit die Supabase-CLI sie nicht als aktive
+-- Migration einliest.
+--
+-- Kanonisch ist: db/migrations/202607080001_core_schema.sql
+-- Begruendung + Konsequenzen: docs/architecture/backend-provider.md
+--
+-- Warum aufgehoben statt geloescht: die Datei beschreibt ~30 Tabellen
+-- fuer Module, die im kanonischen Schema noch fehlen (Ticketing,
+-- Newsletter, GEMA-Werke, Finanzen, Presse, Medien, KI, Benachrichti-
+-- gungen). Sie dient den Sprints 3-10 als fachliche Vorlage.
+--
+-- Die RLS-Loecher aus O2 (fehlendes WITH CHECK, fehlendes FORCE RLS,
+-- nicht idempotente Policies) sind hier trotz Archivstatus MIT
+-- geschlossen, damit ein spaeteres Copy-Paste die Luecke nicht
+-- zurueckholt. Das Rollenmodell ist ebenfalls auf die 5 Sprintplan-
+-- Rollen reduziert.
+--
+-- Bekannte Restschwaeche (bewusst nicht nachgezogen, weil archiviert):
+-- fuer viele Tabellen ist RLS aktiviert, aber es existiert gar keine
+-- Policy (venue_rooms, event_checklist, contracts, email_templates,
+-- gema_works, budgets, budget_items, transactions, media, ticket_types,
+-- reservations, calendar_entries, settings, activity_log,
+-- event_artists). Das ist fail-closed (niemand sieht etwas), aber
+-- funktional unbrauchbar. Beim Uebernehmen einzelner Tabellen ins
+-- kanonische Schema gilt: Policy immer mit USING + WITH CHECK und
+-- FORCE ROW LEVEL SECURITY anlegen.
+-- =====================================================================
+
 -- Prepend mock auth schema to mimic Supabase Auth locally
 CREATE SCHEMA IF NOT EXISTS auth;
 
@@ -59,7 +92,7 @@ CREATE TABLE IF NOT EXISTS organization_members (
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
- role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'manager', 'booker', 'venue_operator', 'accountant', 'member', 'viewer')),
+ role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'manager', 'member', 'viewer')),
  permissions JSONB DEFAULT '{}',
  is_primary BOOLEAN DEFAULT false,
  invited_by UUID REFERENCES users(id),
@@ -778,59 +811,141 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Enable RLS
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events FORCE ROW LEVEL SECURITY;
 ALTER TABLE venues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE venues FORCE ROW LEVEL SECURITY;
 ALTER TABLE venue_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE venue_rooms FORCE ROW LEVEL SECURITY;
 ALTER TABLE artists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE artists FORCE ROW LEVEL SECURITY;
 ALTER TABLE event_artists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_artists FORCE ROW LEVEL SECURITY;
 ALTER TABLE event_checklist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_checklist FORCE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contracts FORCE ROW LEVEL SECURITY;
 ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE newsletter_subscribers FORCE ROW LEVEL SECURITY;
 ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_templates FORCE ROW LEVEL SECURITY;
 ALTER TABLE email_campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_campaigns FORCE ROW LEVEL SECURITY;
 ALTER TABLE gema_registrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gema_registrations FORCE ROW LEVEL SECURITY;
 ALTER TABLE gema_works ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gema_works FORCE ROW LEVEL SECURITY;
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets FORCE ROW LEVEL SECURITY;
 ALTER TABLE budget_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budget_items FORCE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions FORCE ROW LEVEL SECURITY;
 ALTER TABLE social_media_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_media_accounts FORCE ROW LEVEL SECURITY;
 ALTER TABLE social_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_posts FORCE ROW LEVEL SECURITY;
 ALTER TABLE press_contacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE press_contacts FORCE ROW LEVEL SECURITY;
 ALTER TABLE press_releases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE press_releases FORCE ROW LEVEL SECURITY;
 ALTER TABLE media ENABLE ROW LEVEL SECURITY;
+ALTER TABLE media FORCE ROW LEVEL SECURITY;
 ALTER TABLE ticket_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ticket_types FORCE ROW LEVEL SECURITY;
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tickets FORCE ROW LEVEL SECURITY;
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservations FORCE ROW LEVEL SECURITY;
 ALTER TABLE check_ins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE check_ins FORCE ROW LEVEL SECURITY;
 ALTER TABLE calendar_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE calendar_entries FORCE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE settings FORCE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log FORCE ROW LEVEL SECURITY;
 ALTER TABLE ai_providers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_providers FORCE ROW LEVEL SECURITY;
 ALTER TABLE ai_generations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_generations FORCE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
 
--- Isolation Policies
-CREATE POLICY "events_org_isolation" ON events FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "venues_org_isolation" ON venues FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "artists_org_isolation" ON artists FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "subscribers_org_isolation" ON newsletter_subscribers FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "campaigns_org_isolation" ON email_campaigns FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "gema_org_isolation" ON gema_registrations FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "social_accounts_org" ON social_media_accounts FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "social_posts_org" ON social_posts FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "press_contacts_org" ON press_contacts FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "press_releases_org" ON press_releases FOR ALL USING (organization_id = get_current_org_id());
+-- Isolation Policies (O2-gehaertet: idempotent + WITH CHECK)
+DROP POLICY IF EXISTS "events_org_isolation" ON events;
+CREATE POLICY "events_org_isolation" ON events FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
 
-CREATE POLICY "tickets_event_isolation" ON tickets FOR ALL USING (
-  event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id())
-);
+DROP POLICY IF EXISTS "venues_org_isolation" ON venues;
+CREATE POLICY "venues_org_isolation" ON venues FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
 
-CREATE POLICY "check_ins_event_isolation" ON check_ins FOR ALL USING (
-  event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id())
-);
+DROP POLICY IF EXISTS "artists_org_isolation" ON artists;
+CREATE POLICY "artists_org_isolation" ON artists FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
 
-CREATE POLICY "ai_providers_org" ON ai_providers FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "ai_generations_org" ON ai_generations FOR ALL USING (organization_id = get_current_org_id());
-CREATE POLICY "notifications_user" ON notifications FOR ALL USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "subscribers_org_isolation" ON newsletter_subscribers;
+CREATE POLICY "subscribers_org_isolation" ON newsletter_subscribers FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "campaigns_org_isolation" ON email_campaigns;
+CREATE POLICY "campaigns_org_isolation" ON email_campaigns FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "gema_org_isolation" ON gema_registrations;
+CREATE POLICY "gema_org_isolation" ON gema_registrations FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "social_accounts_org" ON social_media_accounts;
+CREATE POLICY "social_accounts_org" ON social_media_accounts FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "social_posts_org" ON social_posts;
+CREATE POLICY "social_posts_org" ON social_posts FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "press_contacts_org" ON press_contacts;
+CREATE POLICY "press_contacts_org" ON press_contacts FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "press_releases_org" ON press_releases;
+CREATE POLICY "press_releases_org" ON press_releases FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "ai_providers_org" ON ai_providers;
+CREATE POLICY "ai_providers_org" ON ai_providers FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "ai_generations_org" ON ai_generations;
+CREATE POLICY "ai_generations_org" ON ai_generations FOR ALL
+  USING (organization_id = get_current_org_id())
+  WITH CHECK (organization_id = get_current_org_id());
+
+DROP POLICY IF EXISTS "tickets_event_isolation" ON tickets;
+CREATE POLICY "tickets_event_isolation" ON tickets FOR ALL
+  USING (event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id()))
+  WITH CHECK (event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id()));
+
+DROP POLICY IF EXISTS "check_ins_event_isolation" ON check_ins;
+CREATE POLICY "check_ins_event_isolation" ON check_ins FOR ALL
+  USING (event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id()))
+  WITH CHECK (event_id IN (SELECT id FROM events WHERE organization_id = get_current_org_id()));
+
+DROP POLICY IF EXISTS "notifications_user" ON notifications;
+CREATE POLICY "notifications_user" ON notifications FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_events_org_date ON events(organization_id, date);

@@ -1,5 +1,4 @@
-import { sampleVenues } from "./sample-data";
-import type { Artist, Event, EventStatus } from "./types";
+import type { Artist, Event, EventStatus, Venue } from "./types";
 
 export type EventFilters = {
   query?: string;
@@ -48,9 +47,16 @@ export function createEventSlug(title: string, date: string): string {
   return `${date}-${normalizedTitle}`;
 }
 
+/**
+ * Prüft Doppelbuchungen je Spielort.
+ *
+ * `venues` wird bewusst hereingereicht statt aus `sample-data` importiert
+ * (O3): die Domänenschicht darf keinen eigenen Datenbestand kennen, sonst
+ * lässt sich Mandantentrennung nicht garantieren.
+ */
 export function detectVenueConflicts(
   events: Event[],
-  { bufferMinutes }: { bufferMinutes: number },
+  { bufferMinutes, venues }: { bufferMinutes: number; venues: Venue[] },
 ): VenueConflict[] {
   const conflicts: VenueConflict[] = [];
   const sortedEvents = [...events].sort((left, right) =>
@@ -72,7 +78,7 @@ export function detectVenueConflicts(
       const secondEnd = toMinutes(second.endTime) + bufferMinutes;
 
       if (firstStart < secondEnd && secondStart < firstEnd) {
-        const venueName = getVenueName(first.venueId);
+        const venueName = getVenueName(first.venueId, venues);
         conflicts.push({
           venueId: first.venueId,
           venueName,
@@ -135,6 +141,6 @@ function toMinutes(time: string): number {
   return hours * 60 + minutes;
 }
 
-function getVenueName(venueId: string): string {
-  return sampleVenues.find((venue) => venue.id === venueId)?.name ?? "unbekannten Spielort";
+function getVenueName(venueId: string, venues: Venue[]): string {
+  return venues.find((venue) => venue.id === venueId)?.name ?? "unbekannten Spielort";
 }

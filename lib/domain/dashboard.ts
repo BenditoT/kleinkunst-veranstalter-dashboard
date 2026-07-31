@@ -1,4 +1,4 @@
-import type { Artist, Event, SearchResult, Task, Venue } from "./types";
+import type { Artist, Event, SearchIndexEntry, SearchResult, Task, Venue } from "./types";
 
 type DashboardInput = {
   events: Event[];
@@ -91,6 +91,75 @@ export function findGemaDeadlines(events: Event[], referenceDate: Date): GemaDea
     .sort((left, right) => left.daysUntilDue - right.daysUntilDue);
 }
 
+/**
+ * Baut den vorberechneten Suchindex (O3.4).
+ *
+ * Wird serverseitig über den Datenport aufgerufen; die Client-Topbar
+ * bekommt nur das Ergebnis als Prop und filtert darauf. Dadurch landet
+ * nicht mehr der komplette Datenbestand (Events, Künstler, Spielorte mit
+ * allen Feldern) in jedem Seiten-Bundle, sondern nur Label, Beschreibung,
+ * Ziel-Href und die Suchbegriffe.
+ */
+export function buildSearchIndex({
+  events,
+  artists,
+  venues,
+}: {
+  events: Event[];
+  artists: Artist[];
+  venues: Venue[];
+}): SearchIndexEntry[] {
+  return [
+    ...events.map((event) => ({
+      kind: "event" as const,
+      id: event.id,
+      label: event.title,
+      description: event.subtitle,
+      href: `/veranstaltungen/${event.slug}`,
+      keywords: normalize(`${event.title} ${event.subtitle}`),
+    })),
+    ...artists.map((artist) => ({
+      kind: "artist" as const,
+      id: artist.id,
+      label: artist.stageName,
+      description: artist.genres.join(", "),
+      href: `/kuenstler/${artist.id}`,
+      keywords: normalize(`${artist.stageName} ${artist.contactName} ${artist.genres.join(" ")}`),
+    })),
+    ...venues.map((venue) => ({
+      kind: "venue" as const,
+      id: venue.id,
+      label: venue.name,
+      description: `${venue.city} · ${venue.capacity} Plätze`,
+      href: `/spielorte/${venue.id}`,
+      keywords: normalize(`${venue.name} ${venue.city} ${venue.type} ${venue.searchTerms.join(" ")}`),
+    })),
+  ];
+}
+
+/** Filtert den Suchindex und gruppiert die Treffer nach Entitätstyp. */
+export function groupSearchIndex(index: SearchIndexEntry[], query: string): GroupedSearchResults {
+  const normalizedQuery = normalize(query);
+
+  if (!normalizedQuery) {
+    return { events: [], artists: [], venues: [] };
+  }
+
+  const matches = index.filter((entry) => entry.keywords.includes(normalizedQuery));
+  const toResult = ({ id, label, description, href }: SearchIndexEntry): SearchResult => ({
+    id,
+    label,
+    description,
+    href,
+  });
+
+  return {
+    events: matches.filter((entry) => entry.kind === "event").map(toResult),
+    artists: matches.filter((entry) => entry.kind === "artist").map(toResult),
+    venues: matches.filter((entry) => entry.kind === "venue").map(toResult),
+  };
+}
+
 export function groupGlobalSearchResults({
   query,
   events,
@@ -102,46 +171,7 @@ export function groupGlobalSearchResults({
   artists: Artist[];
   venues: Venue[];
 }): GroupedSearchResults {
-  const normalizedQuery = normalize(query);
-
-  if (!normalizedQuery) {
-    return { events: [], artists: [], venues: [] };
-  }
-
-  return {
-    events: events
-      .filter((event) => normalize(`${event.title} ${event.subtitle}`).includes(normalizedQuery))
-      .map((event) => ({
-        id: event.id,
-        label: event.title,
-        description: event.subtitle,
-        href: `/veranstaltungen/${event.slug}`,
-      })),
-    artists: artists
-      .filter((artist) =>
-        normalize(`${artist.stageName} ${artist.contactName} ${artist.genres.join(" ")}`).includes(
-          normalizedQuery,
-        ),
-      )
-      .map((artist) => ({
-        id: artist.id,
-        label: artist.stageName,
-        description: artist.genres.join(", "),
-        href: `/kuenstler/${artist.id}`,
-      })),
-    venues: venues
-      .filter((venue) =>
-        normalize(`${venue.name} ${venue.city} ${venue.type} ${venue.searchTerms.join(" ")}`).includes(
-          normalizedQuery,
-        ),
-      )
-      .map((venue) => ({
-        id: venue.id,
-        label: venue.name,
-        description: `${venue.city} · ${venue.capacity} Plätze`,
-        href: `/spielorte/${venue.id}`,
-      })),
-  };
+  return groupSearchIndex(buildSearchIndex({ events, artists, venues }), query);
 }
 
 function sum(values: number[]): number {

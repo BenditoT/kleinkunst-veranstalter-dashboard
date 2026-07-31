@@ -26,7 +26,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAGES: "true"
-      NEXT_PUBLIC_DEMO_PIN: "69198"
+      # Demo-PIN kommt aus der Repository-Variablen DEMO_PIN (Settings ->
+      # Secrets and variables -> Actions -> Variables). Rotation also ohne
+      # Code-Aenderung. Ist nichts gesetzt, greift der Fallback aus
+      # lib/auth/pin.ts (DEMO_PIN_FALLBACK). Kein Secret: der Wert landet
+      # ohnehin im Client-Bundle - siehe O4/lib/auth/pin.ts.
+      NEXT_PUBLIC_DEMO_PIN: ${{ vars.DEMO_PIN }}
+      NEXT_PUBLIC_DEMO_MODE: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
