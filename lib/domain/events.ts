@@ -1,5 +1,5 @@
 import { sampleVenues } from "./sample-data";
-import type { Event, EventStatus } from "./types";
+import type { Artist, Event, EventStatus } from "./types";
 
 export type EventFilters = {
   query?: string;
@@ -85,6 +85,33 @@ export function detectVenueConflicts(
   }
 
   return conflicts;
+}
+
+const artistLookupCache = new WeakMap<Artist[], Map<string, Artist>>();
+
+function getArtistLookup(artists: Artist[]): Map<string, Artist> {
+  let lookup = artistLookupCache.get(artists);
+
+  if (!lookup) {
+    lookup = new Map(artists.map((artist) => [artist.id, artist]));
+    artistLookupCache.set(artists, lookup);
+  }
+
+  return lookup;
+}
+
+/**
+ * Löst Künstler-IDs zu einem lesbaren Namen auf.
+ * Konsolidiert aus dashboard-home.tsx, events-workspace.tsx und event-detail.tsx (S5).
+ * Nutzt eine gecachte Lookup-Map statt .find() in einer Schleife.
+ */
+export function getArtistNames(artistIds: string[], artists: Artist[]): string {
+  const lookup = getArtistLookup(artists);
+
+  return artistIds
+    .map((id) => lookup.get(id)?.stageName)
+    .filter((name): name is string => Boolean(name))
+    .join(", ");
 }
 
 export function getEventStatusTransitionOptions(status: EventStatus): EventStatus[] {

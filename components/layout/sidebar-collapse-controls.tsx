@@ -16,10 +16,12 @@ export function SidebarCollapseButton() {
     <button
       type="button"
       onClick={() => setCollapsed(true)}
+      aria-expanded="true"
+      aria-controls="primary-sidebar"
       className="mt-4 flex h-10 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
     >
       <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
-      Menue einklappen
+      Menü einklappen
     </button>
   );
 }
@@ -47,10 +49,12 @@ export function SidebarRestoreButton() {
     <button
       type="button"
       onClick={() => setCollapsed(false)}
+      aria-expanded="false"
+      aria-controls="primary-sidebar"
       className="fixed left-3 top-24 z-40 hidden h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-lg transition hover:bg-slate-50 lg:flex"
     >
       <Menu className="h-4 w-4" aria-hidden="true" />
-      Menue
+      Menü
     </button>
   );
 }

@@ -1,24 +1,25 @@
 import { expect, type Page, test } from "@playwright/test";
+import { GITHUB_PAGES_BASE_PATH } from "../../lib/config/site.mjs";
 
 const pin = "69198";
-const basePath = "/kleinkunst-veranstalter-dashboard";
+const basePath = GITHUB_PAGES_BASE_PATH;
 
 const routes: Array<{ path: string; text: string }> = [
-  { path: "/", text: "Uebersicht" },
+  { path: "/", text: "Übersicht" },
   { path: "/veranstaltungen/", text: "Veranstaltungen planen" },
   { path: "/veranstaltungen/neu/", text: "Event erstellen" },
   { path: "/veranstaltungen/2026-07-09-jazz-im-hof/", text: "Jazz im Hof" },
-  { path: "/veranstaltungen/2026-07-11-kabarett-stadtgefluester/", text: "Kabarett: Stadtgefluester" },
+  { path: "/veranstaltungen/2026-07-11-kabarett-stadtgefluester/", text: "Kabarett: Stadtgeflüster" },
   { path: "/veranstaltungen/2026-07-13-poetry-slam-spezial/", text: "Poetry Slam Spezial" },
-  { path: "/veranstaltungen/2026-07-17-sommerbuehne-impro/", text: "Sommerbuehne Impro" },
+  { path: "/veranstaltungen/2026-07-17-sommerbuehne-impro/", text: "Sommerbühne Impro" },
   { path: "/veranstaltungen/2026-07-21-chanson-nacht/", text: "Chanson Nacht" },
   { path: "/veranstaltungen/2026-07-29-nacht-der-lieder/", text: "Nacht der Lieder" },
   { path: "/spielorte/", text: "Spielorte" },
   { path: "/spielorte/venue-kupfersaal/", text: "Kupfersaal Leipzig" },
-  { path: "/spielorte/venue-lindenhof/", text: "Lindenhof Buehne" },
-  { path: "/spielorte/venue-kulturdeck/", text: "Kulturdeck Koeln" },
+  { path: "/spielorte/venue-lindenhof/", text: "Lindenhof Bühne" },
+  { path: "/spielorte/venue-kulturdeck/", text: "Kulturdeck Köln" },
   { path: "/spielorte/venue-schwarzer-saal/", text: "Schwarzer Saal" },
-  { path: "/kuenstler/", text: "Kuenstler" },
+  { path: "/kuenstler/", text: "Künstler" },
   { path: "/kuenstler/artist-mara-sol/", text: "Mara Sol" },
   { path: "/kuenstler/artist-ernst-klein/", text: "Ernst Klein" },
   { path: "/kuenstler/artist-wortwechsel/", text: "Wortwechsel Kollektiv" },
@@ -32,18 +33,18 @@ const routes: Array<{ path: string; text: string }> = [
   { path: "/einstellungen/", text: "Einstellungen" },
   { path: "/login/", text: "Anmelden" },
   { path: "/register/", text: "Organisation registrieren" },
-  { path: "/forgot-password/", text: "Passwort zuruecksetzen" },
+  { path: "/forgot-password/", text: "Passwort zurücksetzen" },
 ];
 
 async function unlock(page: Page) {
   await page.goto(appPath("/"));
 
-  if (await page.getByRole("heading", { name: "Buehnenblick Login" }).isVisible()) {
+  if (await page.getByRole("heading", { name: "Bühnenblick Login" }).isVisible()) {
     await page.locator('input[type="password"]').fill(pin);
     await page.getByRole("button", { name: "Einloggen" }).click();
   }
 
-  await expect(page.getByRole("heading", { name: "Uebersicht" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Übersicht" })).toBeVisible();
 }
 
 function appPath(path: string) {
@@ -66,8 +67,8 @@ test.describe("Kleinkunst dashboard e2e", () => {
   test("PIN gate blocks the dashboard, rejects wrong PIN, and accepts the configured PIN", async ({ page }) => {
     await page.goto(appPath("/"));
 
-    await expect(page.getByRole("heading", { name: "Buehnenblick Login" })).toBeVisible();
-    await expect(page.locator("body")).not.toContainText("Naechste Veranstaltungen");
+    await expect(page.getByRole("heading", { name: "Bühnenblick Login" })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("Nächste Veranstaltungen");
 
     await page.locator('input[type="password"]').fill("00000");
     await page.getByRole("button", { name: "Einloggen" }).click();
@@ -75,10 +76,10 @@ test.describe("Kleinkunst dashboard e2e", () => {
 
     await page.locator('input[type="password"]').fill(pin);
     await page.getByRole("button", { name: "Einloggen" }).click();
-    await expect(page.getByRole("heading", { name: "Uebersicht" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Übersicht" })).toBeVisible();
 
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Uebersicht" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Übersicht" })).toBeVisible();
   });
 
   test("all exported application routes render without 404s or page-level overflow", async ({ page }) => {
@@ -96,7 +97,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
     const navTargets = [
       ["Veranstaltungen", /\/veranstaltungen\/$/],
       ["Spielorte", /\/spielorte\/$/],
-      ["Kuenstler", /\/kuenstler\/$/],
+      ["Künstler", /\/kuenstler\/$/],
       ["Kalender", /\/kalender\/$/],
       ["Newsletter", /\/newsletter\/$/],
       ["GEMA", /\/gema\/$/],
@@ -120,7 +121,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await page
       .locator("section")
       .filter({ hasText: "Multi-Venue-Kalender" })
-      .getByRole("link", { name: "Kalender oeffnen" })
+      .getByRole("link", { name: "Kalender öffnen" })
       .click();
     await expect(page).toHaveURL(/\/kalender\/$/);
 
@@ -132,7 +133,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
   test("global search links open event, artist, and venue details", async ({ page }) => {
     await unlock(page);
 
-    await page.getByPlaceholder("Events, Kuenstler, Spielorte suchen").fill("jazz");
+    await page.getByPlaceholder("Events, Künstler, Spielorte suchen").fill("jazz");
 
     const searchRegion = page.locator("header");
     await expect(searchRegion.locator('a[href$="/veranstaltungen/2026-07-09-jazz-im-hof/"]')).toBeVisible();
@@ -144,13 +145,13 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page.getByRole("heading", { name: "Jazz im Hof" })).toBeVisible();
 
     await page.goto(appPath("/"));
-    await page.getByPlaceholder("Events, Kuenstler, Spielorte suchen").fill("jazz");
+    await page.getByPlaceholder("Events, Künstler, Spielorte suchen").fill("jazz");
     await searchRegion.locator('a[href$="/kuenstler/artist-mara-sol/"]').click();
     await expect(page).toHaveURL(/\/kuenstler\/artist-mara-sol\/$/);
     await expect(page.getByRole("heading", { name: "Mara Sol" })).toBeVisible();
 
     await page.goto(appPath("/"));
-    await page.getByPlaceholder("Events, Kuenstler, Spielorte suchen").fill("jazz");
+    await page.getByPlaceholder("Events, Künstler, Spielorte suchen").fill("jazz");
     await searchRegion.locator('a[href$="/spielorte/venue-kupfersaal/"]').click();
     await expect(page).toHaveURL(/\/spielorte\/venue-kupfersaal\/$/);
     await expect(page.getByRole("heading", { name: "Kupfersaal Leipzig" })).toBeVisible();
@@ -173,7 +174,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await page.getByRole("link", { name: /Details/ }).click();
     await expect(page).toHaveURL(/\/veranstaltungen\/2026-07-13-poetry-slam-spezial\/$/);
     await expect(page.getByRole("heading", { name: "Poetry Slam Spezial" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Zurueck zur Eventliste" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Zurück zur Eventliste" })).toBeVisible();
   });
 
   test("new event form validates required fields before showing save feedback", async ({ page }) => {
@@ -220,7 +221,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await page.goto(appPath("/kalender/"));
 
     await expect(page.locator("body")).toContainText("Woche ab 08. Juli 2026");
-    await page.getByRole("button", { name: "Naechste Woche" }).click();
+    await page.getByRole("button", { name: "Nächste Woche" }).click();
     await expect(page.locator("body")).toContainText("Woche ab 15. Juli 2026");
     await expect(page.locator("body")).toContainText("Events diese Woche");
     await expect(page.locator("body")).toContainText("2");
@@ -240,7 +241,7 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page).toHaveURL(/\/spielorte\/$/);
 
     await page.getByRole("button", { name: "Spielort anlegen" }).click();
-    await expect(page.getByRole("status")).toContainText("Spielort anlegen wurde fuer die Demo vorgemerkt");
+    await expect(page.getByRole("status")).toContainText("Spielort anlegen wurde für die Demo vorgemerkt");
 
     await page.locator('a[href$="/spielorte/venue-kupfersaal/"]').first().click();
     await expect(page).toHaveURL(/\/spielorte\/venue-kupfersaal\/$/);
@@ -251,14 +252,14 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page.locator("html")).toHaveClass(/dark/);
 
     await page.getByRole("button", { name: "Benachrichtigungen" }).click();
-    await expect(page.getByText("3 GEMA-Meldungen faellig")).toBeVisible();
-    await page.getByRole("link", { name: /3 GEMA-Meldungen faellig/ }).click();
+    await expect(page.getByText("3 GEMA-Meldungen fällig")).toBeVisible();
+    await page.getByRole("link", { name: /3 GEMA-Meldungen fällig/ }).click();
     await expect(page).toHaveURL(/\/gema\/$/);
 
     await page.goto(appPath("/"));
-    await page.getByRole("button", { name: "Menue einklappen" }).click();
+    await page.getByRole("button", { name: "Menü einklappen" }).click();
     await expect(page.locator("html")).toHaveClass(/sidebar-collapsed/);
-    await page.getByRole("button", { name: "Menue", exact: true }).click();
+    await page.getByRole("button", { name: "Menü", exact: true }).click();
     await expect(page.locator("html")).not.toHaveClass(/sidebar-collapsed/);
   });
 
@@ -279,12 +280,39 @@ test.describe("Kleinkunst dashboard e2e", () => {
     await expect(page.getByRole("status")).toContainText("Registrierung wurde in der Demo vorgemerkt");
   });
 
+  test("unknown routes render the German not-found page", async ({ page }) => {
+    await unlock(page);
+    await page.goto(appPath("/does-not-exist/"));
+
+    await expect(page.getByRole("heading", { name: "Seite nicht gefunden" })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("This page could not be found");
+
+    await page.getByRole("link", { name: "Zurück zur Übersicht" }).click();
+    await expect(page).toHaveURL(new RegExp(`${basePath}/$`));
+    await expect(page.getByRole("heading", { name: "Übersicht" })).toBeVisible();
+  });
+
+  test("Ctrl+K focuses the search field and Escape closes the notifications popover", async ({ page }) => {
+    await unlock(page);
+
+    await page.keyboard.press("Control+k");
+    await expect(page.getByPlaceholder("Events, Künstler, Spielorte suchen")).toBeFocused();
+
+    const notificationsButton = page.getByRole("button", { name: "Benachrichtigungen" });
+    await notificationsButton.click();
+    await expect(page.getByText("3 GEMA-Meldungen fällig")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByText("3 GEMA-Meldungen fällig")).toBeHidden();
+    await expect(notificationsButton).toBeFocused();
+  });
+
   test("mobile menu opens and navigates without horizontal overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 820 });
     await unlock(page);
 
-    await page.getByRole("button", { name: "Navigation oeffnen" }).click();
-    await expect(page.getByRole("button", { name: "Navigation schliessen" })).toBeVisible();
+    await page.getByRole("button", { name: "Navigation öffnen" }).click();
+    await expect(page.getByRole("button", { name: "Navigation schließen" })).toBeVisible();
     const expandedNavigation = page.getByRole("navigation", { name: "Navigation", exact: true });
     await expect(expandedNavigation).toContainText("Ticketing");
 

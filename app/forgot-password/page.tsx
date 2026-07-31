@@ -4,11 +4,11 @@ import { DemoAuthForm } from "@/components/auth/demo-auth-form";
 export default function ForgotPasswordPage() {
   return (
     <AuthCard
-      title="Passwort zuruecksetzen"
+      title="Passwort zurücksetzen"
       description="Sende einen Reset-Link an die hinterlegte E-Mail-Adresse."
       footer={
         <>
-          Wieder eingefallen? <AuthLink href="/login">Zurueck zum Login</AuthLink>
+          Wieder eingefallen? <AuthLink href="/login">Zurück zum Login</AuthLink>
         </>
       }
     >

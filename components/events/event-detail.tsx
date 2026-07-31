@@ -2,23 +2,22 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, FileText, ListChecks, Music, Ticket } from "lucide-react";
 
 import { findGemaDeadlines } from "@/lib/domain/dashboard";
-import { getEventStatusTransitionOptions } from "@/lib/domain/events";
+import { getArtistNames, getEventStatusTransitionOptions } from "@/lib/domain/events";
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
+import { getReferenceNow } from "@/lib/domain/now";
 import { sampleArtists, sampleEvents, sampleTasks, sampleVenues } from "@/lib/domain/sample-data";
 import type { Event } from "@/lib/domain/types";
 
 type EventDetailProps = {
   event: Event;
+  now?: Date;
 };
 
-export function EventDetail({ event }: EventDetailProps) {
-  const artistNames = event.artistIds
-    .map((id) => sampleArtists.find((artist) => artist.id === id)?.stageName)
-    .filter(Boolean)
-    .join(", ");
+export function EventDetail({ event, now = getReferenceNow() }: EventDetailProps) {
+  const artistNames = getArtistNames(event.artistIds, sampleArtists);
   const eventTasks = sampleTasks.filter((task) => task.eventId === event.id);
-  const deadlines = findGemaDeadlines(sampleEvents, new Date("2026-07-08T12:00:00+02:00"));
+  const deadlines = findGemaDeadlines(sampleEvents, now);
   const eventDeadline = deadlines.find((deadline) => deadline.eventId === event.id);
   const transitionOptions = getEventStatusTransitionOptions(event.status);
 
@@ -26,7 +25,7 @@ export function EventDetail({ event }: EventDetailProps) {
     <div className="mx-auto grid max-w-[1400px] gap-5">
       <Link href="/veranstaltungen" className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Zurueck zur Eventliste
+        Zurück zur Eventliste
       </Link>
 
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -40,12 +39,12 @@ export function EventDetail({ event }: EventDetailProps) {
             <div className="mt-5 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
               <InfoTile label="Datum" value={`${formatDate(event.date)}, ${event.startTime}-${event.endTime}`} />
               <InfoTile label="Spielort" value={getVenueName(event, sampleVenues)} />
-              <InfoTile label="Kuenstler" value={artistNames} />
+              <InfoTile label="Künstler" value={artistNames} />
             </div>
           </div>
 
           <div className="rounded-lg bg-slate-950 p-4 text-white">
-            <p className="text-sm text-slate-400">Naechste Statusoptionen</p>
+            <p className="text-sm text-slate-400">Nächste Statusoptionen</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {transitionOptions.length > 0 ? (
                 transitionOptions.map((status) => (
@@ -62,9 +61,9 @@ export function EventDetail({ event }: EventDetailProps) {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-4">
-        <DetailCard icon={Ticket} label="Tickets" value={`${event.soldTickets}/${event.capacity}`} detail="verkauft / Kapazitaet" />
+        <DetailCard icon={Ticket} label="Tickets" value={`${event.soldTickets}/${event.capacity}`} detail="verkauft / Kapazität" />
         <DetailCard icon={FileText} label="Umsatz" value={formatCurrency(event.revenueActual)} detail={`Ziel ${formatCurrency(event.revenueTarget)}`} />
-        <DetailCard icon={Music} label="GEMA" value={getStatusLabel(event.gemaStatus)} detail={eventDeadline ? `Faellig in ${eventDeadline.daysUntilDue} Tagen` : "keine offene Frist"} />
+        <DetailCard icon={Music} label="GEMA" value={getStatusLabel(event.gemaStatus)} detail={eventDeadline ? `Fällig in ${eventDeadline.daysUntilDue} Tagen` : "keine offene Frist"} />
         <DetailCard icon={ListChecks} label="Aufgaben" value={String(eventTasks.filter((task) => !task.completed).length)} detail={`${eventTasks.length} insgesamt`} />
       </section>
 

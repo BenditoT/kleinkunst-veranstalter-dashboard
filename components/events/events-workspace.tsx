@@ -1,24 +1,15 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, CalendarPlus, Filter, Plus, Search } from "lucide-react";
 
-import { detectVenueConflicts, filterEvents, type EventFilters } from "@/lib/domain/events";
-import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { detectVenueConflicts, filterEvents, getArtistNames, type EventFilters, type VenueConflict } from "@/lib/domain/events";
+import { eventStatusFilterOptions, formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
 import { sampleArtists, sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
-import type { EventStatus } from "@/lib/domain/types";
 
 type EventsWorkspaceProps = {
   filters: EventFilters;
 };
-
-const eventStatuses: Array<{ value: EventStatus | "all"; label: string }> = [
-  { value: "all", label: "Alle Status" },
-  { value: "draft", label: "Entwurf" },
-  { value: "planned", label: "Geplant" },
-  { value: "published", label: "Veroeffentlicht" },
-  { value: "completed", label: "Abgeschlossen" },
-  { value: "cancelled", label: "Abgesagt" },
-];
 
 export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
   const filteredEvents = filterEvents(sampleEvents, filters);
@@ -33,7 +24,7 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
             <p className="text-sm font-medium text-slate-500">Event-Management</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-950">Veranstaltungen planen</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Filterbare Arbeitsliste fuer Status, Spielorte, Tickets, GEMA und Konfliktpruefung.
+              Filterbare Arbeitsliste für Status, Spielorte, Tickets, GEMA und Konfliktprüfung.
             </p>
           </div>
           <Link
@@ -47,7 +38,7 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <EventStat label="Gefilterte Events" value={String(filteredEvents.length)} detail="im aktuellen Blick" />
-          <EventStat label="Veroeffentlicht" value={String(publishedCount)} detail="ticket- und pressebereit" />
+          <EventStat label="Veröffentlicht" value={String(publishedCount)} detail="ticket- und pressebereit" />
           <EventStat label="Konflikte" value={String(conflicts.length)} detail="mit 45 Min. Puffer" tone="warning" />
         </div>
       </section>
@@ -64,7 +55,7 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
                   <th className="px-5 py-3 font-semibold">Event</th>
                   <th className="px-5 py-3 font-semibold">Datum</th>
                   <th className="px-5 py-3 font-semibold">Spielort</th>
-                  <th className="px-5 py-3 font-semibold">Kuenstler</th>
+                  <th className="px-5 py-3 font-semibold">Künstler</th>
                   <th className="px-5 py-3 font-semibold">Umsatz</th>
                   <th className="px-5 py-3 font-semibold">Tickets</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
@@ -85,16 +76,16 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-600">{getVenueName(event, sampleVenues)}</td>
-                    <td className="px-5 py-4 text-slate-600">{getArtistNames(event.artistIds)}</td>
+                    <td className="px-5 py-4 text-slate-600">{getArtistNames(event.artistIds, sampleArtists)}</td>
                     <td className="px-5 py-4 font-semibold text-slate-800">{formatCurrency(event.revenueActual)}</td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-                          <div
-                            className="h-full rounded-full bg-teal-500"
-                            style={{ width: `${Math.round((event.soldTickets / event.capacity) * 100)}%` }}
-                          />
-                        </div>
+                        <ProgressBar
+                          value={event.soldTickets}
+                          max={event.capacity}
+                          label={`Tickets verkauft: ${event.soldTickets} von ${event.capacity}`}
+                          trackClassName="w-24"
+                        />
                         <span className="text-xs text-slate-500">
                           {event.soldTickets}/{event.capacity}
                         </span>
@@ -122,7 +113,7 @@ export function EventsWorkspace({ filters }: EventsWorkspaceProps) {
         </div>
 
         <aside className="grid gap-5">
-          <ConflictPanel />
+          <ConflictPanel conflicts={conflicts} />
           <ChecklistPanel />
         </aside>
       </section>
@@ -169,7 +160,7 @@ function EventFilters({ filters }: { filters: EventFilters }) {
         defaultValue={filters.status ?? "all"}
         className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
       >
-        {eventStatuses.map((status) => (
+        {eventStatusFilterOptions.map((status) => (
           <option key={status.value} value={status.value}>
             {status.label}
           </option>
@@ -198,13 +189,11 @@ function EventFilters({ filters }: { filters: EventFilters }) {
   );
 }
 
-function ConflictPanel() {
-  const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45 });
-
+function ConflictPanel({ conflicts }: { conflicts: VenueConflict[] }) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
-        <h3 className="text-base font-semibold text-slate-950">Konfliktpruefung</h3>
+        <h3 className="text-base font-semibold text-slate-950">Konfliktprüfung</h3>
       </div>
       <div className="space-y-3 p-4">
         {conflicts.length === 0 ? (
@@ -226,9 +215,9 @@ function ConflictPanel() {
 
 function ChecklistPanel() {
   const checklist = [
-    "Kuenstlervertrag pruefen",
+    "Künstlervertrag prüfen",
     "GEMA-Musikfolge anfordern",
-    "Newsletter-Segment auswaehlen",
+    "Newsletter-Segment auswählen",
     "Abendkasse vorbereiten",
   ];
 
@@ -247,11 +236,4 @@ function ChecklistPanel() {
       </div>
     </section>
   );
-}
-
-function getArtistNames(artistIds: string[]): string {
-  return artistIds
-    .map((id) => sampleArtists.find((artist) => artist.id === id)?.stageName)
-    .filter(Boolean)
-    .join(", ");
 }

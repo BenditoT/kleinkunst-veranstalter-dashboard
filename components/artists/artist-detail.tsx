@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Star, Ticket, UserRound } from "lucide-react";
 
+import { InfoRow } from "@/components/ui/info-row";
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
 import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
@@ -21,7 +22,7 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
     <div className="mx-auto grid max-w-[1300px] gap-5">
       <Link href="/kuenstler" className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Zurueck zu Kuenstler
+        Zurück zu Künstler
       </Link>
 
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -31,7 +32,7 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
               <UserRound className="h-7 w-7" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Kuenstlerprofil</p>
+              <p className="text-sm font-medium text-slate-500">Künstlerprofil</p>
               <h2 className="mt-1 text-3xl font-semibold text-slate-950">{artist.stageName}</h2>
               <p className="mt-2 text-sm text-slate-600">Kontakt: {artist.contactName}</p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -47,9 +48,9 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-950">Booking-Status</p>
             <div className="mt-4 grid gap-3">
-              <StatusLine label="Bewertung" value={`${artist.rating}/5`} />
-              <StatusLine label="Favorit" value={artist.isFavorite ? "Ja" : "Nein"} />
-              <StatusLine label="Events" value={String(artistEvents.length)} />
+              <InfoRow tone="white" label="Bewertung" value={`${artist.rating}/5`} />
+              <InfoRow tone="white" label="Favorit" value={artist.isFavorite ? "Ja" : "Nein"} />
+              <InfoRow tone="white" label="Events" value={String(artistEvents.length)} />
             </div>
           </div>
         </div>
@@ -63,7 +64,7 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-950">Verknuepfte Veranstaltungen</h3>
+          <h3 className="text-base font-semibold text-slate-950">Verknüpfte Veranstaltungen</h3>
         </div>
         <div className="divide-y divide-slate-100">
           {artistEvents.map((event) => (
@@ -88,15 +89,6 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
           ))}
         </div>
       </section>
-    </div>
-  );
-}
-
-function StatusLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-md bg-white px-3 py-2">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-900">{value}</span>
     </div>
   );
 }

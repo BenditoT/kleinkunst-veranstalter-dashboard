@@ -138,7 +138,7 @@ export function groupGlobalSearchResults({
       .map((venue) => ({
         id: venue.id,
         label: venue.name,
-        description: `${venue.city} · ${venue.capacity} Plaetze`,
+        description: `${venue.city} · ${venue.capacity} Plätze`,
         href: `/spielorte/${venue.id}`,
       })),
   };

@@ -101,7 +101,7 @@ export function EventFormScreen() {
     <div className="mx-auto grid max-w-[1100px] gap-5">
       <Link href="/veranstaltungen" className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Zurueck zur Eventliste
+        Zurück zur Eventliste
       </Link>
 
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -109,7 +109,7 @@ export function EventFormScreen() {
           <p className="text-sm font-medium text-slate-500">Event erstellen</p>
           <h2 className="mt-1 text-2xl font-semibold text-slate-950">Neue Veranstaltung</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Dieses Formular ist fuer den spaeteren Server-Action/tRPC-Flow vorbereitet. Validierung,
+            Dieses Formular ist für den späteren Server-Action/tRPC-Flow vorbereitet. Validierung,
             Slug-Generierung und Provider-Adapter bleiben getrennt von der UI.
           </p>
         </div>
@@ -166,7 +166,7 @@ export function EventFormScreen() {
               </select>
             </label>
             <label htmlFor="artistId" className="block">
-              <span className="text-sm font-medium text-slate-700">Kuenstler</span>
+              <span className="text-sm font-medium text-slate-700">Künstler</span>
               <select
                 id="artistId"
                 name="artistId"
@@ -191,7 +191,7 @@ export function EventFormScreen() {
               required
             />
             <FormField
-              label="Kapazitaet"
+              label="Kapazität"
               name="capacity"
               type="number"
               placeholder="320"
@@ -210,7 +210,7 @@ export function EventFormScreen() {
               name="description"
               rows={5}
               className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
-              placeholder="Kurzbeschreibung fuer Programm, Newsletter und Presse..."
+              placeholder="Kurzbeschreibung für Programm, Newsletter und Presse..."
             />
           </label>
 

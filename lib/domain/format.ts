@@ -1,3 +1,5 @@
+import type { Event, EventStatus } from "./types";
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
@@ -12,6 +14,14 @@ export function formatDate(value: string): string {
     month: "short",
     year: "numeric",
   }).format(new Date(`${value}T00:00:00`));
+}
+
+export function formatLongDate(value: Date): string {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(value);
 }
 
 export function formatShortDate(value: string): string {
@@ -29,18 +39,47 @@ export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     draft: "Entwurf",
     planned: "Geplant",
-    published: "Veroeffentlicht",
+    published: "Veröffentlicht",
     completed: "Abgeschlossen",
     cancelled: "Abgesagt",
-    not_required: "Nicht noetig",
-    pending: "Faellig",
+    not_required: "Nicht nötig",
+    pending: "Fällig",
     submitted: "Eingereicht",
-    confirmed: "Bestaetigt",
+    confirmed: "Bestätigt",
     problem: "Problem",
   };
 
   return labels[status] ?? status;
 }
+
+/**
+ * Kompaktes Statuslabel für knappe UI-Flächen (Dashboard-Tabelle).
+ * Konsolidiert aus dashboard-home.tsx (S5).
+ */
+export function getCompactStatusLabel(status: Event["status"]): string {
+  const labels: Record<Event["status"], string> = {
+    draft: "Entwurf",
+    planned: "Geplant",
+    published: "Live",
+    completed: "Fertig",
+    cancelled: "Abgesagt",
+  };
+
+  return labels[status] ?? getStatusLabel(status);
+}
+
+/**
+ * Optionen für den Status-Filter (inkl. "Alle Status").
+ * Konsolidiert aus events-workspace.tsx (S5).
+ */
+export const eventStatusFilterOptions: Array<{ value: EventStatus | "all"; label: string }> = [
+  { value: "all", label: "Alle Status" },
+  { value: "draft", label: getStatusLabel("draft") },
+  { value: "planned", label: getStatusLabel("planned") },
+  { value: "published", label: getStatusLabel("published") },
+  { value: "completed", label: getStatusLabel("completed") },
+  { value: "cancelled", label: getStatusLabel("cancelled") },
+];
 
 export function getStatusClass(status: string): string {
   const classes: Record<string, string> = {

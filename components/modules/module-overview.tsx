@@ -41,15 +41,15 @@ export function ModuleOverview({ moduleId }: ModuleOverviewProps) {
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-950">Primaere Aktion</p>
+            <p className="text-sm font-semibold text-slate-950">Primäre Aktion</p>
             <div className="mt-3">
               <DemoActionButton
                 label={summary.primaryAction}
-                message={`${summary.primaryAction} wurde fuer die Demo vorgemerkt. Der produktive Schreibfluss laeuft spaeter ueber den Backend-Adapter.`}
+                message={`${summary.primaryAction} wurde für die Demo vorgemerkt. Der produktive Schreibfluss läuft später über den Backend-Adapter.`}
               />
             </div>
             <p className="mt-4 text-xs leading-5 text-slate-500">
-              Diese Ansicht ist provider-neutral. Daten kommen spaeter ueber den Backend-Adapter aus Cloud SQL,
+              Diese Ansicht ist provider-neutral. Daten kommen später über den Backend-Adapter aus Cloud SQL,
               Supabase oder Self-hosted Postgres.
             </p>
           </div>
@@ -102,7 +102,7 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
                 <p className="font-medium text-slate-950">{venue.name}</p>
               </div>
               <p className="mt-1 text-sm text-slate-500">
-                {venue.city} · {venue.capacity} Plaetze · {venue.type}
+                {venue.city} · {venue.capacity} Plätze · {venue.type}
               </p>
             </Link>
           ))}

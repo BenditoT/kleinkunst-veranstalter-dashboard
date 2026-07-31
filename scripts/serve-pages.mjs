@@ -2,9 +2,15 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 
+import { GITHUB_PAGES_BASE_PATH } from "../lib/config/site.mjs";
+
 const host = process.env.PLAYWRIGHT_HOST ?? "127.0.0.1";
 const port = Number(process.env.PLAYWRIGHT_PORT ?? 4174);
 const root = resolve(process.env.STATIC_ROOT ?? "/tmp/kleinkunst-pages-e2e");
+// GitHub Pages serviert bei jeder unbekannten URL die 404.html vom Seiten-Root
+// (hier: unterhalb des basePath, siehe deploy-github-pages.yml). Das bilden wir
+// hier nach, statt nur "Not found" als Klartext auszugeben (S3).
+const notFoundFile = resolve(join(root, GITHUB_PAGES_BASE_PATH, "404.html"));
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -23,6 +29,12 @@ createServer((request, response) => {
   const filePath = resolvePath(pathname);
 
   if (!filePath) {
+    if (existsSync(notFoundFile)) {
+      response.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+      createReadStream(notFoundFile).pipe(response);
+      return;
+    }
+
     response.writeHead(404);
     response.end("Not found");
     return;

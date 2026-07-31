@@ -156,3 +156,17 @@
     padding-left: 0;
   }
 }
+
+/* Bewegungsreduktion respektieren (S6): Animationen/Transitions abschalten,
+   Sprung zu Endzustand statt Bewegung. Betrifft u. a. .animate-fade-in,
+   .shimmer, animate-pulse (Tailwind) und alle CSS-Transitions/-Animationen. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

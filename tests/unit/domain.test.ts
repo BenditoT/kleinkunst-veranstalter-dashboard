@@ -20,9 +20,9 @@ describe("dashboard domain helpers", () => {
     expect(metrics.openTaskCount).toBe(8);
     expect(metrics.nextEvents.map((event) => event.title)).toEqual([
       "Jazz im Hof",
-      "Kabarett: Stadtgefluester",
+      "Kabarett: Stadtgeflüster",
       "Poetry Slam Spezial",
-      "Sommerbuehne Impro",
+      "Sommerbühne Impro",
       "Chanson Nacht",
     ]);
     expect(metrics.venueOccupancy[0]).toMatchObject({
@@ -36,7 +36,7 @@ describe("dashboard domain helpers", () => {
 
     expect(deadlines.map((deadline) => deadline.eventTitle)).toEqual([
       "Jazz im Hof",
-      "Kabarett: Stadtgefluester",
+      "Kabarett: Stadtgeflüster",
       "Poetry Slam Spezial",
     ]);
     expect(deadlines[0]).toMatchObject({

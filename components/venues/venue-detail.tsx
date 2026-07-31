@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, CalendarDays, MapPinned, UsersRound } from "lucide-react";
 
+import { InfoRow } from "@/components/ui/info-row";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { sampleEvents } from "@/lib/domain/sample-data";
 import type { Venue } from "@/lib/domain/types";
@@ -20,7 +22,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
     <div className="mx-auto grid max-w-[1300px] gap-5">
       <Link href="/spielorte" className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Zurueck zu Spielorte
+        Zurück zu Spielorte
       </Link>
 
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -33,7 +35,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
               <p className="text-sm font-medium text-slate-500">Spielortprofil</p>
               <h2 className="mt-1 text-3xl font-semibold text-slate-950">{venue.name}</h2>
               <p className="mt-2 text-sm text-slate-600">
-                {venue.city} · {venue.type} · {venue.capacity} Plaetze
+                {venue.city} · {venue.type} · {venue.capacity} Plätze
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {venue.searchTerms.map((term) => (
@@ -47,20 +49,25 @@ export function VenueDetail({ venue }: VenueDetailProps) {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-950">Auslastung</p>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
-              <div className="h-full rounded-full" style={{ width: `${occupancy}%`, backgroundColor: venue.color }} />
+            <div className="mt-4">
+              <ProgressBar
+                value={venue.bookedSlots}
+                max={venue.monthlySlots}
+                label={`Auslastung ${venue.name}: ${occupancy}%`}
+                color={venue.color}
+              />
             </div>
             <div className="mt-4 grid gap-3">
-              <StatusLine label="Gebuchte Slots" value={`${venue.bookedSlots}/${venue.monthlySlots}`} />
-              <StatusLine label="Auslastung" value={`${occupancy}%`} />
-              <StatusLine label="Events" value={String(venueEvents.length)} />
+              <InfoRow tone="white" label="Gebuchte Slots" value={`${venue.bookedSlots}/${venue.monthlySlots}`} />
+              <InfoRow tone="white" label="Auslastung" value={`${occupancy}%`} />
+              <InfoRow tone="white" label="Events" value={String(venueEvents.length)} />
             </div>
           </div>
         </div>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard icon={UsersRound} label="Kapazitaet" value={`${venue.capacity} Plaetze`} />
+        <SummaryCard icon={UsersRound} label="Kapazität" value={`${venue.capacity} Plätze`} />
         <SummaryCard icon={CalendarDays} label="Monats-Slots" value={`${venue.bookedSlots}/${venue.monthlySlots}`} />
         <SummaryCard icon={MapPinned} label="Umsatz" value={formatCurrency(revenue)} />
       </section>
@@ -92,15 +99,6 @@ export function VenueDetail({ venue }: VenueDetailProps) {
           ))}
         </div>
       </section>
-    </div>
-  );
-}
-
-function StatusLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-md bg-white px-3 py-2">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-900">{value}</span>
     </div>
   );
 }

@@ -19,8 +19,8 @@ describe("GitHub Pages deployment", () => {
     const config = read("next.config.mjs");
 
     expect(config).toContain("output: isGitHubPages ? \"export\" : \"standalone\"");
-    expect(config).toContain("basePath: isGitHubPages ? githubPagesBasePath : undefined");
-    expect(config).toContain("assetPrefix: isGitHubPages ? `${githubPagesBasePath}/` : undefined");
+    expect(config).toContain("basePath: isGitHubPages ? GITHUB_PAGES_BASE_PATH : undefined");
+    expect(config).toContain("assetPrefix: isGitHubPages ? `${GITHUB_PAGES_BASE_PATH}/` : undefined");
   });
 
   it("deploys the exported app through GitHub Pages with the requested PIN", () => {

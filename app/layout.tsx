@@ -16,7 +16,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Kleinkunst Dashboard",
-  description: "Dashboard fuer deutsche Kleinkunst-Veranstalter mit Multi-Venue-Planung.",
+  description: "Dashboard für deutsche Kleinkunst-Veranstalter mit Multi-Venue-Planung.",
 };
 
 export default function RootLayout({

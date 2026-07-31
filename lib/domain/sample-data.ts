@@ -14,7 +14,7 @@ export const sampleVenues: Venue[] = [
   },
   {
     id: "venue-lindenhof",
-    name: "Lindenhof Buehne",
+    name: "Lindenhof Bühne",
     city: "Augsburg",
     capacity: 180,
     color: "#8b5cf6",
@@ -25,8 +25,8 @@ export const sampleVenues: Venue[] = [
   },
   {
     id: "venue-kulturdeck",
-    name: "Kulturdeck Koeln",
-    city: "Koeln",
+    name: "Kulturdeck Köln",
+    city: "Köln",
     capacity: 260,
     color: "#f59e0b",
     type: "Open Air",
@@ -104,7 +104,7 @@ export const sampleEvents: Event[] = [
   },
   {
     id: "event-kabarett-stadtgefluester",
-    title: "Kabarett: Stadtgefluester",
+    title: "Kabarett: Stadtgeflüster",
     subtitle: "Politischer Abend mit Ernst Klein",
     date: "2026-07-11",
     startTime: "19:30",
@@ -124,7 +124,7 @@ export const sampleEvents: Event[] = [
   {
     id: "event-poetry-slam",
     title: "Poetry Slam Spezial",
-    subtitle: "Stadtfinale der Wortbuehne",
+    subtitle: "Stadtfinale der Wortbühne",
     date: "2026-07-13",
     startTime: "20:00",
     endTime: "22:15",
@@ -142,7 +142,7 @@ export const sampleEvents: Event[] = [
   },
   {
     id: "event-sommerbuehne-impro",
-    title: "Sommerbuehne Impro",
+    title: "Sommerbühne Impro",
     subtitle: "Improtheater unter freiem Himmel",
     date: "2026-07-17",
     startTime: "19:00",
@@ -202,7 +202,7 @@ export const sampleEvents: Event[] = [
 export const sampleTasks: Task[] = [
   {
     id: "task-1",
-    title: "GEMA-Musikfolge fuer Jazz im Hof anfordern",
+    title: "GEMA-Musikfolge für Jazz im Hof anfordern",
     dueDate: "2026-07-08",
     eventId: "event-jazz-im-hof",
     category: "gema",
@@ -211,7 +211,7 @@ export const sampleTasks: Task[] = [
   },
   {
     id: "task-2",
-    title: "Technik-Rider Lindenhof bestaetigen",
+    title: "Technik-Rider Lindenhof bestätigen",
     dueDate: "2026-07-09",
     eventId: "event-kabarett-stadtgefluester",
     category: "tech",
@@ -229,7 +229,7 @@ export const sampleTasks: Task[] = [
   },
   {
     id: "task-4",
-    title: "Kuenstlervertrag Trio Luna gegenzeichnen",
+    title: "Künstlervertrag Trio Luna gegenzeichnen",
     dueDate: "2026-07-12",
     eventId: "event-chanson-nacht",
     category: "booking",
@@ -247,7 +247,7 @@ export const sampleTasks: Task[] = [
   },
   {
     id: "task-6",
-    title: "Pressefoto fuer Sommerbuehne freigeben",
+    title: "Pressefoto für Sommerbühne freigeben",
     dueDate: "2026-07-14",
     eventId: "event-sommerbuehne-impro",
     category: "marketing",
@@ -256,7 +256,7 @@ export const sampleTasks: Task[] = [
   },
   {
     id: "task-7",
-    title: "GEMA Rueckfrage Poetry Slam klaeren",
+    title: "GEMA Rückfrage Poetry Slam klären",
     dueDate: "2026-07-14",
     eventId: "event-poetry-slam",
     category: "gema",

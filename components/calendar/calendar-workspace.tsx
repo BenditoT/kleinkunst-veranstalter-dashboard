@@ -4,16 +4,40 @@ import Link from "next/link";
 import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { InfoRow } from "@/components/ui/info-row";
 import { detectVenueConflicts } from "@/lib/domain/events";
 import { formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
+import { getReferenceNow } from "@/lib/domain/now";
 import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
+import type { Event } from "@/lib/domain/types";
 
-const baseWeekStart = new Date(2026, 6, 8);
+// Anker für die Wochenansicht ist das echte "Heute" - injizierbar per
+// NEXT_PUBLIC_FIXED_NOW für deterministische E2E-Builds (S7). Die Woche
+// beginnt bewusst am aktuellen Tag (kein Sonntags-Alignment), damit sich
+// das Verhalten des "Heute"-Buttons nicht ändert.
+const baseWeekStart = getReferenceNow();
 const weekdayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 export function CalendarWorkspace() {
   const [weekOffset, setWeekOffset] = useState(0);
   const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45 });
+  // Einmal nach Datum gruppieren statt die komplette Eventliste 7x/Render
+  // (Wochentabelle) + 7x (Wochenzähler) zu durchsuchen (S5).
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, Event[]>();
+
+    for (const event of sampleEvents) {
+      const dayEvents = map.get(event.date);
+
+      if (dayEvents) {
+        dayEvents.push(event);
+      } else {
+        map.set(event.date, [event]);
+      }
+    }
+
+    return map;
+  }, []);
   const weekDays = useMemo(() => {
     const start = addDays(baseWeekStart, weekOffset * 7);
 
@@ -27,7 +51,7 @@ export function CalendarWorkspace() {
     });
   }, [weekOffset]);
   const weekEventCount = weekDays.reduce(
-    (count, day) => count + sampleEvents.filter((event) => event.date === day.date).length,
+    (count, day) => count + (eventsByDate.get(day.date)?.length ?? 0),
     0,
   );
 
@@ -39,7 +63,7 @@ export function CalendarWorkspace() {
             <p className="text-sm font-medium text-slate-500">Multi-Venue-Kalender</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-950">Woche ab {formatDate(weekDays[0].date)}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Farbcodierte Spielorte, schnelle Konfliktpruefung und Pufferzeit fuer Aufbau, Soundcheck und Abbau.
+              Farbcodierte Spielorte, schnelle Konfliktprüfung und Pufferzeit für Aufbau, Soundcheck und Abbau.
             </p>
           </div>
           <div className="flex gap-2">
@@ -62,7 +86,7 @@ export function CalendarWorkspace() {
               type="button"
               onClick={() => setWeekOffset((value) => value + 1)}
               className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-700 transition hover:bg-slate-50"
-              aria-label="Naechste Woche"
+              aria-label="Nächste Woche"
             >
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -95,7 +119,7 @@ export function CalendarWorkspace() {
           <div className="overflow-x-auto">
             <div className="grid min-w-[840px] grid-cols-7">
               {weekDays.map((day) => {
-                const dayEvents = sampleEvents.filter((event) => event.date === day.date);
+                const dayEvents = eventsByDate.get(day.date) ?? [];
 
                 return (
                   <div key={day.date} className="min-h-[360px] border-r border-slate-100 p-3 last:border-r-0">
@@ -149,10 +173,10 @@ export function CalendarWorkspace() {
               <h3 className="text-base font-semibold text-slate-950">Kalenderstatus</h3>
             </div>
             <div className="grid gap-3 p-4">
-              <StatusRow label="Pufferzeit" value="45 Minuten" />
-              <StatusRow label="Ansicht" value="Woche" />
-              <StatusRow label="Aktive Spielorte" value={String(sampleVenues.length)} />
-              <StatusRow label="Events diese Woche" value={String(weekEventCount)} />
+              <InfoRow label="Pufferzeit" value="45 Minuten" />
+              <InfoRow label="Ansicht" value="Woche" />
+              <InfoRow label="Aktive Spielorte" value={String(sampleVenues.length)} />
+              <InfoRow label="Events diese Woche" value={String(weekEventCount)} />
             </div>
           </section>
 
@@ -198,13 +222,4 @@ function formatIsoDate(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
-}
-
-function StatusRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-900">{value}</span>
-    </div>
-  );
 }

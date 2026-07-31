@@ -51,9 +51,9 @@ export function PinGate({ children }: PinGateProps) {
         <div className="grid h-12 w-12 place-items-center rounded-md bg-slate-950 text-teal-300">
           <LockKeyhole className="h-5 w-5" aria-hidden="true" />
         </div>
-        <h1 className="mt-7 text-2xl font-semibold text-slate-950">Buehnenblick Login</h1>
+        <h1 className="mt-7 text-2xl font-semibold text-slate-950">Bühnenblick Login</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Geschuetzte Demo fuer das Kleinkunst-Veranstalter Dashboard.
+          Geschützte Demo für das Kleinkunst-Veranstalter Dashboard.
         </p>
 
         <form className="mt-7 grid gap-4" onSubmit={handleSubmit}>

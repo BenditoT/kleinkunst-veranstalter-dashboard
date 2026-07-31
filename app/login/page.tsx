@@ -5,14 +5,14 @@ export default function LoginPage() {
   return (
     <AuthCard
       title="Anmelden"
-      description="Melde dich mit E-Mail und Passwort an. OAuth und Magic Link werden ueber den Auth-Adapter angebunden."
+      description="Melde dich mit E-Mail und Passwort an. OAuth und Magic Link werden über den Auth-Adapter angebunden."
       footer={
         <>
           Noch kein Konto? <AuthLink href="/register">Organisation registrieren</AuthLink>
         </>
       }
     >
-      <DemoAuthForm successMessage="Login wurde in der Demo vorbereitet. Produktiv nutzt diese App spaeter Identity Platform oder den gewaehlten Auth-Adapter.">
+      <DemoAuthForm successMessage="Login wurde in der Demo vorbereitet. Produktiv nutzt diese App später Identity Platform oder den gewählten Auth-Adapter.">
         <AuthInput label="E-Mail" name="email" type="email" />
         <AuthInput label="Passwort" name="password" type="password" />
         <div className="flex items-center justify-between text-sm">

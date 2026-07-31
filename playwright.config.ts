@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { GITHUB_PAGES_BASE_PATH } from "./lib/config/site.mjs";
 
 const port = process.env.PLAYWRIGHT_PORT ?? "4174";
 const host = "127.0.0.1";
-const basePath = "/kleinkunst-veranstalter-dashboard";
+const basePath = GITHUB_PAGES_BASE_PATH;
 const staticRoot = "/tmp/kleinkunst-pages-e2e";
 
 export default defineConfig({
@@ -29,7 +30,11 @@ export default defineConfig({
   ],
   webServer: {
     command: [
-      "env -u NO_COLOR FORCE_COLOR=0 npm run build:pages",
+      // NEXT_PUBLIC_FIXED_NOW pinnt "heute" für den E2E-Build auf einen festen
+      // Zeitpunkt (siehe lib/domain/now.ts), damit Datum/Woche/GEMA-Fristen in
+      // den Tests deterministisch bleiben. Der produktive build:pages-Lauf
+      // (deploy-github-pages.yml) setzt das NICHT und nutzt das echte Datum (S7).
+      "env -u NO_COLOR FORCE_COLOR=0 NEXT_PUBLIC_FIXED_NOW=2026-07-08T12:00:00+02:00 npm run build:pages",
       `rm -rf ${staticRoot}`,
       `mkdir -p ${staticRoot}${basePath}`,
       `cp -R out/. ${staticRoot}${basePath}/`,

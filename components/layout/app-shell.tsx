@@ -15,19 +15,28 @@ type AppShellProps = {
 export function AppShell({ activeItem, children }: AppShellProps) {
   return (
     <div className="min-h-screen text-slate-950">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-slate-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+      >
+        Zum Inhalt springen
+      </a>
       <SidebarRestoreButton />
-      <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[268px] border-r border-slate-900/80 bg-slate-950 text-white shadow-2xl lg:flex lg:flex-col">
+      <aside
+        id="primary-sidebar"
+        className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[268px] border-r border-slate-900/80 bg-slate-950 text-white shadow-2xl lg:flex lg:flex-col"
+      >
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
           <div className="grid h-11 w-11 place-items-center rounded-md border border-teal-300/30 bg-teal-400/20 text-teal-100">
             <Landmark className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-base font-semibold leading-5">Buehnenblick</p>
+            <p className="text-base font-semibold leading-5">Bühnenblick</p>
             <p className="text-xs text-slate-400">Kleinkunst Dashboard</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5" aria-label="Hauptnavigation">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.id === activeItem;
@@ -89,7 +98,9 @@ export function AppShell({ activeItem, children }: AppShellProps) {
             })}
           </nav>
         </div>
-        <main className="min-h-screen px-4 pb-10 pt-6 sm:px-6 lg:px-8">{children}</main>
+        <main id="main-content" tabIndex={-1} className="min-h-screen px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+          {children}
+        </main>
       </div>
     </div>
   );

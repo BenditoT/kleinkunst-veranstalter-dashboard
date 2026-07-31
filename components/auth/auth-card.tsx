@@ -24,7 +24,7 @@ export function AuthCard({ title, description, children, footer }: AuthCardProps
           <div className="mt-8 rounded-lg bg-white/6 p-4">
             <p className="text-sm font-semibold">Backend vorbereitet</p>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Default: Google Cloud. Supabase-Migration fruehestens ab 24.07.2026.
+              Default: Google Cloud. Supabase-Migration frühestens ab 24.07.2026.
             </p>
           </div>
         </section>

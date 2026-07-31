@@ -5,14 +5,14 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Organisation registrieren"
-      description="Lege die erste Organisation und den Owner-Zugang fuer dein Veranstalter-Team an."
+      description="Lege die erste Organisation und den Owner-Zugang für dein Veranstalter-Team an."
       footer={
         <>
           Schon registriert? <AuthLink href="/login">Zum Login</AuthLink>
         </>
       }
     >
-      <DemoAuthForm successMessage="Registrierung wurde in der Demo vorgemerkt. Die produktive Anlage schreibt spaeter in Cloud SQL.">
+      <DemoAuthForm successMessage="Registrierung wurde in der Demo vorgemerkt. Die produktive Anlage schreibt später in Cloud SQL.">
         <AuthInput label="Organisationsname" name="organizationName" />
         <AuthInput label="Vorname" name="firstName" />
         <AuthInput label="E-Mail" name="email" type="email" />

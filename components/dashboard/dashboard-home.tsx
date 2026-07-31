@@ -11,15 +11,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { calculateDashboardMetrics, findGemaDeadlines } from "@/lib/domain/dashboard";
-import { formatCurrency, formatDate, formatPercent, formatShortDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
+import { getArtistNames } from "@/lib/domain/events";
+import { formatCurrency, formatDate, formatLongDate, formatPercent, formatShortDate, getCompactStatusLabel, getStatusClass } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
+import { getReferenceNow } from "@/lib/domain/now";
 import { sampleArtists, sampleEvents, sampleTasks, sampleVenues } from "@/lib/domain/sample-data";
 import type { Event } from "@/lib/domain/types";
 
-const referenceDate = new Date("2026-07-08T12:00:00+02:00");
+type DashboardHomeProps = {
+  now?: Date;
+};
 
-export function DashboardHome() {
+export function DashboardHome({ now = getReferenceNow() }: DashboardHomeProps = {}) {
+  const referenceDate = now;
   const metrics = calculateDashboardMetrics({
     events: sampleEvents,
     tasks: sampleTasks,
@@ -36,12 +42,12 @@ export function DashboardHome() {
         <div className="min-w-0 rounded-lg border border-slate-200 bg-white/95 p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Willkommen zurueck, Kultur schafft Verbindung.</p>
+              <p className="text-sm font-medium text-slate-500">Willkommen zurück, Kultur schafft Verbindung.</p>
               <h2 className="mt-1 text-3xl font-semibold tracking-normal text-slate-950">
-                Heute <span className="text-teal-700">08. Juli 2026</span>
+                Heute <span className="text-teal-700">{formatLongDate(referenceDate)}</span>
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Multi-Venue-Kommando fuer Programm, GEMA, Finanzen, Kommunikation und Aufgaben.
+                Multi-Venue-Kommando für Programm, GEMA, Finanzen, Kommunikation und Aufgaben.
               </p>
             </div>
             <div className="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900 shadow-sm">
@@ -63,7 +69,7 @@ export function DashboardHome() {
             {[
               ["Google Cloud SQL", "Bereit", "text-teal-700"],
               ["RLS Mandantenkontext", "Vorbereitet", "text-slate-700"],
-              ["Supabase pruefen", "24.07.2026", "text-amber-700"],
+              ["Supabase prüfen", "24.07.2026", "text-amber-700"],
             ].map(([label, status]) => (
               <div key={label} className="flex items-center justify-between gap-3 py-3">
                 <span className="text-sm text-slate-600">{label}</span>
@@ -181,7 +187,7 @@ function Sparkline({ tone }: { tone: "teal" | "emerald" | "amber" | "rose" }) {
 function UpcomingEvents({ events }: { events: Event[] }) {
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Naechste Veranstaltungen" action="Alle anzeigen" href="/veranstaltungen" />
+      <SectionHeader title="Nächste Veranstaltungen" action="Alle anzeigen" href="/veranstaltungen" />
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead>
@@ -201,7 +207,7 @@ function UpcomingEvents({ events }: { events: Event[] }) {
                     <EventPoster title={event.title} />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-950">{event.title}</p>
-                      <p className="mt-1 truncate text-xs text-slate-500">{getArtistNames(event.artistIds)}</p>
+                      <p className="mt-1 truncate text-xs text-slate-500">{getArtistNames(event.artistIds, sampleArtists)}</p>
                     </div>
                   </Link>
                 </td>
@@ -211,12 +217,12 @@ function UpcomingEvents({ events }: { events: Event[] }) {
                 <td className="px-5 py-4 text-slate-600">{getVenueName(event, sampleVenues)}</td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-teal-500"
-                        style={{ width: `${Math.round((event.soldTickets / event.capacity) * 100)}%` }}
-                      />
-                    </div>
+                    <ProgressBar
+                      value={event.soldTickets}
+                      max={event.capacity}
+                      label={`Tickets verkauft: ${event.soldTickets} von ${event.capacity}`}
+                      trackClassName="w-24"
+                    />
                     <span className="text-xs text-slate-500">
                       {event.soldTickets}/{event.capacity}
                     </span>
@@ -262,7 +268,7 @@ function CalendarPreview({ events }: { events: Event[] }) {
 
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="Multi-Venue-Kalender" action="Kalender oeffnen" href="/kalender" />
+      <SectionHeader title="Multi-Venue-Kalender" action="Kalender öffnen" href="/kalender" />
       <div className="grid min-w-0 grid-cols-7 border-t border-slate-200">
         {days.map((day) => (
           <div key={day} className="border-r border-slate-100 p-3 last:border-r-0">
@@ -296,14 +302,14 @@ function CalendarPreview({ events }: { events: Event[] }) {
 function GemaPanel({ deadlines }: { deadlines: Array<{ eventId: string; eventTitle: string; daysUntilDue: number; status: string }> }) {
   return (
     <section className="min-w-0 rounded-lg border border-slate-200 bg-white/95 shadow-sm">
-      <SectionHeader title="GEMA faellig" action="Meldungen" href="/gema" />
+      <SectionHeader title="GEMA fällig" action="Meldungen" href="/gema" />
       <div className="space-y-2 p-4">
         {deadlines.map((deadline) => (
           <div key={deadline.eventId} className="flex items-center gap-3 rounded-md bg-amber-50 p-3 text-amber-950">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{deadline.eventTitle}</p>
-              <p className="text-xs text-amber-700">In {deadline.daysUntilDue} Tagen faellig</p>
+              <p className="text-xs text-amber-700">In {deadline.daysUntilDue} Tagen fällig</p>
             </div>
           </div>
         ))}
@@ -330,9 +336,12 @@ function VenueOccupancy({
               </div>
               <p className="text-sm font-semibold text-slate-700">{venue.occupancyRate}%</p>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full" style={{ width: `${venue.occupancyRate}%`, backgroundColor: venue.color }} />
-            </div>
+            <ProgressBar
+              value={venue.occupancyRate}
+              max={100}
+              label={`Auslastung ${venue.venueName}: ${venue.occupancyRate}%`}
+              color={venue.color}
+            />
           </div>
         ))}
       </div>
@@ -361,21 +370,3 @@ function EventPoster({ title }: { title: string }) {
   );
 }
 
-function getArtistNames(artistIds: string[]): string {
-  return artistIds
-    .map((id) => sampleArtists.find((artist) => artist.id === id)?.stageName)
-    .filter(Boolean)
-    .join(", ");
-}
-
-function getCompactStatusLabel(status: Event["status"]): string {
-  const labels: Record<Event["status"], string> = {
-    draft: "Entwurf",
-    planned: "Geplant",
-    published: "Live",
-    completed: "Fertig",
-    cancelled: "Abgesagt",
-  };
-
-  return labels[status] ?? getStatusLabel(status);
-}
