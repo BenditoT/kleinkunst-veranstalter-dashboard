@@ -15,7 +15,7 @@ type ArtistDetailProps = {
 /**
  * Server-Komponente: `events`/`venues` kommen als Props von
  * `app/kuenstler/[id]/page.tsx`, das sie über den Datenport lädt (S2).
- * Kein Direktimport aus `sample-data` mehr.
+ * Kein Direktimport des Demodatensatzes mehr.
  */
 export function ArtistDetail({ artist, events, venues }: ArtistDetailProps) {
   const artistEvents = events

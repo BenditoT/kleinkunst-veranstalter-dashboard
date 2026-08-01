@@ -1,5 +1,6 @@
 import { resolveBackendPlan } from "../config/backend";
 import { sampleArtists, sampleEvents, sampleTasks, sampleVenues } from "../domain/sample-data";
+import type { Event, Venue } from "../domain/types";
 import { demoOrganizationContext, type OrganizationContext } from "./context";
 import { createInMemoryDataPort } from "./in-memory-adapter";
 import type { DataPort } from "./port";
@@ -61,4 +62,19 @@ export function getDataPort(): DataPort {
  */
 export async function getRequestOrganizationContext(): Promise<OrganizationContext> {
   return demoOrganizationContext;
+}
+
+/**
+ * Bündelt das Laden von `events`/`venues` für die acht Modulübersichtsseiten
+ * (S3). Keine neue Abstraktionsebene über dem Port — nur Vermeidung
+ * identischen Boilerplates in acht Server-Komponenten, die alle dieselben
+ * zwei Listen für dieselbe Organisation brauchen.
+ */
+export async function loadModuleOverviewData(): Promise<{ events: Event[]; venues: Venue[] }> {
+  const context = await getRequestOrganizationContext();
+  const port = getDataPort();
+
+  const [events, venues] = await Promise.all([port.listEvents(context), port.listVenues(context)]);
+
+  return { events, venues };
 }

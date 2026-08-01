@@ -25,7 +25,7 @@ type CalendarWorkspaceProps = {
 /**
  * Client-Komponente: bekommt `events`/`venues` als Props von
  * `app/kalender/page.tsx`, das sie über den Datenport lädt (S1). Kein
- * Direktimport aus `sample-data` mehr.
+ * Direktimport des Demodatensatzes mehr.
  */
 export function CalendarWorkspace({ events, venues }: CalendarWorkspaceProps) {
   const [weekOffset, setWeekOffset] = useState(0);

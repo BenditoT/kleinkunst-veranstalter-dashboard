@@ -30,7 +30,7 @@ type DashboardHomeProps = {
 /**
  * Server-Komponente: Daten kommen als Props von `app/page.tsx`, das sie über
  * den Datenport für die Organisation aus der Session lädt (S1). Kein
- * Direktimport aus `sample-data` mehr.
+ * Direktimport des Demodatensatzes mehr.
  */
 export function DashboardHome({ events, venues, artists, tasks, now = getReferenceNow() }: DashboardHomeProps) {
   const referenceDate = now;

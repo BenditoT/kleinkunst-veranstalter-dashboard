@@ -10,7 +10,7 @@ import {
   type EventInputField,
   validateEventInput,
 } from "@/lib/domain/event-validation";
-import { sampleArtists, sampleVenues } from "@/lib/domain/sample-data";
+import type { Artist, Venue } from "@/lib/domain/types";
 
 const validationFields: readonly EventInputField[] = [
   "title",
@@ -21,7 +21,17 @@ const validationFields: readonly EventInputField[] = [
   "capacity",
 ];
 
-export function EventFormScreen() {
+type EventFormScreenProps = {
+  venues: Venue[];
+  artists: Artist[];
+};
+
+/**
+ * Client-Komponente: `venues`/`artists` kommen als Props von
+ * `app/veranstaltungen/neu/page.tsx`, das über den Datenport lädt (S3).
+ * Füllen nur die Auswahlfelder — kein Direktimport des Demodatensatzes.
+ */
+export function EventFormScreen({ venues, artists }: EventFormScreenProps) {
   const [title, setTitle] = useState("Neue Veranstaltung");
   const [date, setDate] = useState("2026-08-01");
   const [errors, setErrors] = useState<EventInputErrors>({});
@@ -158,7 +168,7 @@ export function EventFormScreen() {
                 name="venueId"
                 className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
               >
-                {sampleVenues.map((venue) => (
+                {venues.map((venue) => (
                   <option key={venue.id} value={venue.id}>
                     {venue.name}
                   </option>
@@ -172,7 +182,7 @@ export function EventFormScreen() {
                 name="artistId"
                 className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 focus:border-teal-500 focus:ring-2"
               >
-                {sampleArtists.map((artist) => (
+                {artists.map((artist) => (
                   <option key={artist.id} value={artist.id}>
                     {artist.stageName}
                   </option>

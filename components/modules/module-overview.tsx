@@ -2,14 +2,20 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
 import { moduleSummaries, type ModuleId } from "@/lib/domain/module-content";
-import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
+import type { Event, Venue } from "@/lib/domain/types";
 import { DemoActionButton } from "@/components/ui/demo-action-button";
 
 type ModuleOverviewProps = {
   moduleId: Exclude<ModuleId, "dashboard">;
+  events: Event[];
+  venues: Venue[];
 };
 
-export function ModuleOverview({ moduleId }: ModuleOverviewProps) {
+/**
+ * Server-Komponente, von acht Modulseiten benutzt. `events`/`venues` kommen
+ * als Props (über `loadModuleOverviewData()`, S3) statt aus dem Demodatensatz-Modul.
+ */
+export function ModuleOverview({ moduleId, events, venues }: ModuleOverviewProps) {
   const summary = moduleSummaries[moduleId];
   const Icon = summary.icon;
 
@@ -77,13 +83,13 @@ export function ModuleOverview({ moduleId }: ModuleOverviewProps) {
           </div>
         </div>
 
-        <ContextPanel moduleId={moduleId} />
+        <ContextPanel moduleId={moduleId} events={events} venues={venues} />
       </section>
     </div>
   );
 }
 
-function ContextPanel({ moduleId }: ModuleOverviewProps) {
+function ContextPanel({ moduleId, events, venues }: ModuleOverviewProps) {
   if (moduleId === "venues") {
     return (
       <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -91,7 +97,7 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
           <h3 className="text-base font-semibold text-slate-950">Spielorte</h3>
         </div>
         <div className="space-y-3 p-4">
-          {sampleVenues.map((venue) => (
+          {venues.map((venue) => (
             <Link
               key={venue.id}
               href={`/spielorte/${venue.id}`}
@@ -117,7 +123,7 @@ function ContextPanel({ moduleId }: ModuleOverviewProps) {
         <h3 className="text-base font-semibold text-slate-950">Aktuelle Events</h3>
       </div>
       <div className="space-y-3 p-4">
-        {sampleEvents.slice(0, 4).map((event) => (
+        {events.slice(0, 4).map((event) => (
           <Link
             key={event.id}
             href={`/veranstaltungen/${event.slug}`}

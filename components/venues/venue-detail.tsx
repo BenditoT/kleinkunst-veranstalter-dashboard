@@ -14,7 +14,7 @@ type VenueDetailProps = {
 /**
  * Server-Komponente: `events` kommt als Prop von
  * `app/spielorte/[id]/page.tsx`, das über den Datenport lädt (S2). Kein
- * Direktimport aus `sample-data` mehr.
+ * Direktimport des Demodatensatzes mehr.
  */
 export function VenueDetail({ venue, events }: VenueDetailProps) {
   const venueEvents = events
