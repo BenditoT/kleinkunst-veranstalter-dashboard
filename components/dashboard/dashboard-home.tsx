@@ -17,24 +17,32 @@ import { getArtistNames } from "@/lib/domain/events";
 import { formatCurrency, formatDate, formatLongDate, formatPercent, formatShortDate, getCompactStatusLabel, getStatusClass } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
 import { getReferenceNow } from "@/lib/domain/now";
-import { sampleArtists, sampleEvents, sampleTasks, sampleVenues } from "@/lib/domain/sample-data";
-import type { Event } from "@/lib/domain/types";
+import type { Artist, Event, Task, Venue } from "@/lib/domain/types";
 
 type DashboardHomeProps = {
+  events: Event[];
+  venues: Venue[];
+  artists: Artist[];
+  tasks: Task[];
   now?: Date;
 };
 
-export function DashboardHome({ now = getReferenceNow() }: DashboardHomeProps = {}) {
+/**
+ * Server-Komponente: Daten kommen als Props von `app/page.tsx`, das sie über
+ * den Datenport für die Organisation aus der Session lädt (S1). Kein
+ * Direktimport aus `sample-data` mehr.
+ */
+export function DashboardHome({ events, venues, artists, tasks, now = getReferenceNow() }: DashboardHomeProps) {
   const referenceDate = now;
   const metrics = calculateDashboardMetrics({
-    events: sampleEvents,
-    tasks: sampleTasks,
-    venues: sampleVenues,
+    events,
+    tasks,
+    venues,
     referenceDate,
   });
-  const deadlines = findGemaDeadlines(sampleEvents, referenceDate);
+  const deadlines = findGemaDeadlines(events, referenceDate);
   const revenueProgress = Math.round((metrics.monthlyRevenue / metrics.revenueTarget) * 100);
-  const openTasks = sampleTasks.filter((task) => !task.completed).slice(0, 5);
+  const openTasks = tasks.filter((task) => !task.completed).slice(0, 5);
 
   return (
     <div className="mx-auto grid max-w-[1500px] gap-5">
@@ -114,12 +122,12 @@ export function DashboardHome({ now = getReferenceNow() }: DashboardHomeProps = 
       </section>
 
       <section className="grid min-w-0 gap-5 2xl:grid-cols-[minmax(760px,1fr)_320px]">
-        <UpcomingEvents events={metrics.nextEvents} />
+        <UpcomingEvents events={metrics.nextEvents} artists={artists} venues={venues} />
         <OpenTasks tasks={openTasks} />
       </section>
 
       <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <CalendarPreview events={sampleEvents} />
+        <CalendarPreview events={events} venues={venues} />
         <div className="grid gap-5">
           <GemaPanel deadlines={deadlines} />
           <VenueOccupancy venues={metrics.venueOccupancy} />
@@ -184,7 +192,7 @@ function Sparkline({ tone }: { tone: "teal" | "emerald" | "amber" | "rose" }) {
   );
 }
 
-function UpcomingEvents({ events }: { events: Event[] }) {
+function UpcomingEvents({ events, artists, venues }: { events: Event[]; artists: Artist[]; venues: Venue[] }) {
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-sm">
       <SectionHeader title="Nächste Veranstaltungen" action="Alle anzeigen" href="/veranstaltungen" />
@@ -207,14 +215,14 @@ function UpcomingEvents({ events }: { events: Event[] }) {
                     <EventPoster title={event.title} />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-950">{event.title}</p>
-                      <p className="mt-1 truncate text-xs text-slate-500">{getArtistNames(event.artistIds, sampleArtists)}</p>
+                      <p className="mt-1 truncate text-xs text-slate-500">{getArtistNames(event.artistIds, artists)}</p>
                     </div>
                   </Link>
                 </td>
                 <td className="px-5 py-4 text-slate-600">
                   {formatShortDate(event.date)} · {event.startTime}
                 </td>
-                <td className="px-5 py-4 text-slate-600">{getVenueName(event, sampleVenues)}</td>
+                <td className="px-5 py-4 text-slate-600">{getVenueName(event, venues)}</td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2">
                     <ProgressBar
@@ -263,7 +271,7 @@ function OpenTasks({ tasks }: { tasks: Array<{ id: string; title: string; dueDat
   );
 }
 
-function CalendarPreview({ events }: { events: Event[] }) {
+function CalendarPreview({ events, venues }: { events: Event[]; venues: Venue[] }) {
   const days = ["08", "09", "10", "11", "12", "13", "14"];
 
   return (
@@ -279,7 +287,7 @@ function CalendarPreview({ events }: { events: Event[] }) {
       </div>
       <div className="space-y-3 p-4">
         {events.slice(0, 4).map((event) => {
-          const venue = sampleVenues.find((item) => item.id === event.venueId);
+          const venue = venues.find((item) => item.id === event.venueId);
 
           return (
             <div key={event.id} className="grid grid-cols-[88px_minmax(0,1fr)] gap-3">

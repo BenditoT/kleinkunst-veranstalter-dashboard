@@ -8,8 +8,7 @@ import { InfoRow } from "@/components/ui/info-row";
 import { detectVenueConflicts } from "@/lib/domain/events";
 import { formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getReferenceNow } from "@/lib/domain/now";
-import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
-import type { Event } from "@/lib/domain/types";
+import type { Event, Venue } from "@/lib/domain/types";
 
 // Anker für die Wochenansicht ist das echte "Heute" - injizierbar per
 // NEXT_PUBLIC_FIXED_NOW für deterministische E2E-Builds (S7). Die Woche
@@ -18,16 +17,25 @@ import type { Event } from "@/lib/domain/types";
 const baseWeekStart = getReferenceNow();
 const weekdayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
-export function CalendarWorkspace() {
+type CalendarWorkspaceProps = {
+  events: Event[];
+  venues: Venue[];
+};
+
+/**
+ * Client-Komponente: bekommt `events`/`venues` als Props von
+ * `app/kalender/page.tsx`, das sie über den Datenport lädt (S1). Kein
+ * Direktimport aus `sample-data` mehr.
+ */
+export function CalendarWorkspace({ events, venues }: CalendarWorkspaceProps) {
   const [weekOffset, setWeekOffset] = useState(0);
-  // TODO(Sonnet-Sprint): auf den Datenport umstellen (siehe sprint sonnet event app.md).
-  const conflicts = detectVenueConflicts(sampleEvents, { bufferMinutes: 45, venues: sampleVenues });
+  const conflicts = detectVenueConflicts(events, { bufferMinutes: 45, venues });
   // Einmal nach Datum gruppieren statt die komplette Eventliste 7x/Render
   // (Wochentabelle) + 7x (Wochenzähler) zu durchsuchen (S5).
   const eventsByDate = useMemo(() => {
     const map = new Map<string, Event[]>();
 
-    for (const event of sampleEvents) {
+    for (const event of events) {
       const dayEvents = map.get(event.date);
 
       if (dayEvents) {
@@ -38,7 +46,7 @@ export function CalendarWorkspace() {
     }
 
     return map;
-  }, []);
+  }, [events]);
   const weekDays = useMemo(() => {
     const start = addDays(baseWeekStart, weekOffset * 7);
 
@@ -95,7 +103,7 @@ export function CalendarWorkspace() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {sampleVenues.map((venue) => (
+          {venues.map((venue) => (
             <span
               key={venue.id}
               className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700"
@@ -132,7 +140,7 @@ export function CalendarWorkspace() {
                     ) : (
                       <div className="space-y-3">
                         {dayEvents.map((event) => {
-                          const venue = sampleVenues.find((item) => item.id === event.venueId);
+                          const venue = venues.find((item) => item.id === event.venueId);
 
                           return (
                             <Link
@@ -177,7 +185,7 @@ export function CalendarWorkspace() {
             <div className="grid gap-3 p-4">
               <InfoRow label="Pufferzeit" value="45 Minuten" />
               <InfoRow label="Ansicht" value="Woche" />
-              <InfoRow label="Aktive Spielorte" value={String(sampleVenues.length)} />
+              <InfoRow label="Aktive Spielorte" value={String(venues.length)} />
               <InfoRow label="Events diese Woche" value={String(weekEventCount)} />
             </div>
           </section>
