@@ -78,6 +78,8 @@ Kein Test wurde gelöscht; keine Datei wurde nach `docs/` verschoben. `lib/serve
 - Topbar-Bundle-Problem gelöst (Suchindex als Prop)
 - `tests/unit/data-port.test.ts` — Isolationsbeweis mit zwei Organisationen
 
-## Was offen ist (mechanisch, → `sprint sonnet event app.md`)
+## Was offen ist
 
-Sieben Dateien importieren `sample-data` noch direkt: `dashboard-home.tsx`, `calendar-workspace.tsx`, `artist-detail.tsx`, `venue-detail.tsx`, `module-overview.tsx`, `event-form-screen.tsx` sowie die Seiten `app/kuenstler/[id]` und `app/spielorte/[id]`. Das Muster ist identisch zum Events-Pfad: Server-Komponente holt über den Port, Client-Komponente bekommt Props.
+**Erledigt (01.08.2026, Sprint Sonnet S1–S4):** Die restlichen sieben Dateien (`dashboard-home.tsx`, `calendar-workspace.tsx`, `artist-detail.tsx`, `venue-detail.tsx`, `module-overview.tsx`, `event-form-screen.tsx`, `app/kuenstler/[id]`, `app/spielorte/[id]` — plus die acht Modulseiten, die `module-overview.tsx` aufrufen) sind auf den Datenport umgestellt. `grep -rn "sample-data" app components` liefert 0 Treffer; das Bundle-Problem aus Abschnitt 4 ist damit vollständig behoben — `grep -rl "monthlySlots\|bookedSlots" .next/static/chunks` liefert nach `npm run build` 0 Treffer (vorher 2: Kalender, Event-Formular). Ein Regressionstest in `tests/unit/data-port.test.ts` sichert das ab. Neu (mit Bedacht, kein zusätzlicher Port-Layer): `loadModuleOverviewData()` in `lib/data/index.ts` bündelt das identische Laden von `events`/`venues` für die acht Modulübersichtsseiten.
+
+Damit ist die Voraussetzung für Sprint 2 (Auth & Mandantengrenze) erfüllt: keine Komponente kommt mehr am `OrganizationContext` vorbei an Daten.

@@ -1,3 +1,6 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { DEMO_ORGANIZATION_ID, createOrganizationContext } from "../../lib/data/context";
@@ -132,3 +135,50 @@ describe("Datenport-Factory", () => {
     expect(() => createDataPort({ DATA_ADAPTER: "cloud-sql" })).toThrow(/cloud-sql-postgres/);
   });
 });
+
+/**
+ * Regressionstest (S4, docs/architecture/data-port.md Abschnitt 6):
+ *
+ * Diese Eigenschaft — kein UI-Modul kommt am Datenport vorbei an Daten
+ * aller Mandanten — ist teuer zu brechen (Sprint 2/Mandantengrenze baut
+ * genau darauf auf) und wird sonst von keinem anderen Test geprüft. Kein
+ * Implementierungsdetail wird festgeschrieben: der Test kennt nur, dass
+ * `app/` und `components/` keine Datei mit einem Import aus dem
+ * Demodatensatz-Modul (`lib/domain/sample-data`) enthalten dürfen — nicht,
+ * *wie* die Komponenten stattdessen an ihre Daten kommen.
+ */
+describe("Datenport — kein Direktimport der Demodaten in der UI (S4)", () => {
+  it("kein UI-Modul unter app/ oder components/ importiert das Demodatensatz-Modul", () => {
+    const projectRoot = join(__dirname, "..", "..");
+    const offenders: string[] = [];
+
+    for (const dir of ["app", "components"]) {
+      for (const filePath of listSourceFiles(join(projectRoot, dir))) {
+        const contents = readFileSync(filePath, "utf8");
+
+        if (contents.includes("sample-data")) {
+          offenders.push(filePath.slice(projectRoot.length + 1));
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+});
+
+function listSourceFiles(dir: string): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    const entryPath = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...listSourceFiles(entryPath));
+    } else if (entry.isFile() && (entryPath.endsWith(".ts") || entryPath.endsWith(".tsx"))) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
