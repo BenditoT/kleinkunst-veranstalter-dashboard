@@ -50,13 +50,27 @@ export function AuthLink({ href, children }: { href: string; children: ReactNode
   );
 }
 
-export function AuthInput({ label, type = "text", name }: { label: string; type?: string; name: string }) {
+export function AuthInput({
+  label,
+  type = "text",
+  name,
+  autoComplete,
+  minLength,
+}: {
+  label: string;
+  type?: string;
+  name: string;
+  autoComplete?: string;
+  minLength?: number;
+}) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">{label}</span>
       <input
         name={name}
         type={type}
+        autoComplete={autoComplete}
+        minLength={minLength}
         className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none ring-teal-500 transition focus:border-teal-500 focus:ring-2"
       />
     </label>
