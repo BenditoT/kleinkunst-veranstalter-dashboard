@@ -22,12 +22,13 @@ Nach dem Sonnet-Sprint (S1–S7, committet als `1ea987e`, gepusht von Norbert) h
 5. **Kein Backend real angebunden** — weiterhin `DATA_ADAPTER=in-memory`, `BACKEND_PROVIDER=google-cloud` nur als Plan/Default, kein Cloud-SQL-Projekt existiert bisher.
 
 ## Nächster Schritt
-Push ausführen (Befehl unten), dann `sprint sonnet event app.md` (die neue Fassung, Datenport-Restumbau) in einer neuen **Sonnet**-Session öffnen.
+Push ausführen (Befehl unten). Für den nächsten Sprint (Datenport-Restumbau) diese Session als **Fable** weiterlaufen lassen oder eine neue Fable-Session starten — sie liest `FABLE-ORCHESTRIERUNG.md` und startet den nötigen Sonnet-Subagenten selbstständig, ohne dass Norbert manuell eine Sonnet-Session öffnen muss.
 
 ## Mach weiter
-> Ich arbeite an der „Event Management App" (Kleinkunst-Veranstalter Dashboard, Next.js 14 + React 18 + TypeScript). Sonnet-Sprint S1–S7 und Opus-Sprint O1–O5 sind abgeschlossen und committet. Lies zuerst `HANDOVER.md`, dann `sprint sonnet event app.md` (Datenport-Restumbau, S1–S4 — 7 Dateien mechanisch nach dem Events-Pfad-Muster umstellen). `npm run quality` + `npm run test:e2e` müssen nach jeder Aufgabe grün bleiben; vor Start ggf. `npm ci` und `npx playwright install chromium` (in Sandboxen ggf. `libXdamage.so.1` fehlend — nicht die App, sondern die Umgebung).
+> Ich arbeite an der „Event Management App" (Kleinkunst-Veranstalter Dashboard, Next.js 14 + React 18 + TypeScript). Sonnet-Sprint S1–S7 und Opus-Sprint O1–O5 sind abgeschlossen und committet. **Lies zuerst `FABLE-ORCHESTRIERUNG.md`** (Autonomie-Protokoll — Rückfragen nur in den dort genannten Ausnahmefällen), dann `HANDOVER.md`, dann `sprint sonnet event app.md` (Datenport-Restumbau, S1–S4 — 7 Dateien mechanisch nach dem Events-Pfad-Muster umstellen). Starte den nötigen Subagenten selbst, verifiziere sein Ergebnis selbst, committe selbst. `npm run quality` + `npm run test:e2e` müssen nach jeder Aufgabe grün bleiben; vor Start ggf. `npm ci` und `npx playwright install chromium` (in Sandboxen ggf. `libXdamage.so.1` fehlend — nicht die App, sondern die Umgebung).
 
 ## Ressourcen & Dateien
+- `FABLE-ORCHESTRIERUNG.md` — Autonomie-Protokoll für Fable als Orchestrator: startet/verwaltet Sonnet-/Opus-Subagenten selbst, Rückfragen an Norbert nur in klar definierten Ausnahmefällen
 - `sprint sonnet event app.md` — nächster Sprint-Auftrag (Datenport-Restumbau, von der Opus-Session geschrieben)
 - `docs/architecture/backend-provider.md` (ADR 1), `data-port.md` (ADR 2), `auth-port.md` (ADR 3), `theming.md` (ADR 4) — alle Architektur-/Sicherheitsentscheidungen mit Begründung
 - `lib/data/` — Datenport (`port.ts` Interface, `context.ts`, `in-memory-adapter.ts`, `index.ts` Factory)
