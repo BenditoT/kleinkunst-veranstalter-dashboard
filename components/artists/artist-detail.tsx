@@ -4,15 +4,21 @@ import { ArrowLeft, ArrowUpRight, Star, Ticket, UserRound } from "lucide-react";
 import { InfoRow } from "@/components/ui/info-row";
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
 import { getVenueName } from "@/lib/domain/module-content";
-import { sampleEvents, sampleVenues } from "@/lib/domain/sample-data";
-import type { Artist } from "@/lib/domain/types";
+import type { Artist, Event, Venue } from "@/lib/domain/types";
 
 type ArtistDetailProps = {
   artist: Artist;
+  events: Event[];
+  venues: Venue[];
 };
 
-export function ArtistDetail({ artist }: ArtistDetailProps) {
-  const artistEvents = sampleEvents
+/**
+ * Server-Komponente: `events`/`venues` kommen als Props von
+ * `app/kuenstler/[id]/page.tsx`, das sie über den Datenport lädt (S2).
+ * Kein Direktimport aus `sample-data` mehr.
+ */
+export function ArtistDetail({ artist, events, venues }: ArtistDetailProps) {
+  const artistEvents = events
     .filter((event) => event.artistIds.includes(artist.id))
     .sort((left, right) => `${left.date} ${left.startTime}`.localeCompare(`${right.date} ${right.startTime}`));
   const totalRevenue = artistEvents.reduce((sum, event) => sum + event.revenueActual, 0);
@@ -81,7 +87,7 @@ export function ArtistDetail({ artist }: ArtistDetailProps) {
                 {formatDate(event.date)}
                 <span className="block text-xs text-slate-500">{event.startTime}-{event.endTime}</span>
               </p>
-              <p className="text-sm text-slate-600">{getVenueName(event, sampleVenues)}</p>
+              <p className="text-sm text-slate-600">{getVenueName(event, venues)}</p>
               <span className={`h-fit rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${getStatusClass(event.status)}`}>
                 {getStatusLabel(event.status)}
               </span>

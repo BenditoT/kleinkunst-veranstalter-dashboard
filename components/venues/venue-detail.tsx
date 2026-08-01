@@ -4,15 +4,20 @@ import { ArrowLeft, ArrowUpRight, CalendarDays, MapPinned, UsersRound } from "lu
 import { InfoRow } from "@/components/ui/info-row";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { formatCurrency, formatDate, getStatusClass, getStatusLabel } from "@/lib/domain/format";
-import { sampleEvents } from "@/lib/domain/sample-data";
-import type { Venue } from "@/lib/domain/types";
+import type { Event, Venue } from "@/lib/domain/types";
 
 type VenueDetailProps = {
   venue: Venue;
+  events: Event[];
 };
 
-export function VenueDetail({ venue }: VenueDetailProps) {
-  const venueEvents = sampleEvents
+/**
+ * Server-Komponente: `events` kommt als Prop von
+ * `app/spielorte/[id]/page.tsx`, das über den Datenport lädt (S2). Kein
+ * Direktimport aus `sample-data` mehr.
+ */
+export function VenueDetail({ venue, events }: VenueDetailProps) {
+  const venueEvents = events
     .filter((event) => event.venueId === venue.id)
     .sort((left, right) => `${left.date} ${left.startTime}`.localeCompare(`${right.date} ${right.startTime}`));
   const revenue = venueEvents.reduce((sum, event) => sum + event.revenueActual, 0);
