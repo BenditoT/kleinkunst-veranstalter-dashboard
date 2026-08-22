@@ -7,7 +7,6 @@ import {
   type SessionCookieAttributes,
   type SessionCookieStore,
 } from "./adapters/local-credentials";
-import { isDemoModeEnabled } from "./pin";
 import type { AuthPort } from "./port";
 import { sessionCookieOptions } from "./session-cookie";
 
@@ -31,27 +30,7 @@ export {
 
 type AuthEnvironment = Partial<Record<string, string | undefined>>;
 
-/**
- * Ist die serverseitige Anmeldepflicht aktiv?
- *
- * EIN Schalter für beide Welten, damit es keinen Zustand gibt, in dem
- * weder PIN-Gate noch Auth greift:
- * - `NEXT_PUBLIC_DEMO_MODE` an (Default): GitHub-Pages-Export und der
- *   öffentliche Cloud-Run-Demodienst. Es gibt keinen Server, der eine
- *   Session prüfen könnte, und ausschließlich erfundene Daten. Es gilt
- *   das PIN-Gate (Sichtschutz, kein Schutz — siehe `lib/auth/pin.ts`).
- * - `NEXT_PUBLIC_DEMO_MODE=false`: Node-Server-Pfad (`output: "standalone"`).
- *   PIN-Gate verschwindet, dafür greifen Middleware, Session-Prüfung und
- *   Mandantengrenze.
- *
- * Beide existieren nebeneinander, weil Norbert die Pages-Demo weiter zeigt
- * (ADR 3, Entscheidung 1) — sie schließen sich aber gegenseitig aus.
- */
-export function isAuthGuardEnabled(env: AuthEnvironment = process.env): boolean {
-  return !isDemoModeEnabled({
-    NEXT_PUBLIC_DEMO_MODE: env.NEXT_PUBLIC_DEMO_MODE,
-  });
-}
+export { isAuthGuardEnabled } from "./mode";
 
 export type CreateAuthPortOptions = {
   /** Zusätzlicher Sperrschlüssel neben der E-Mail, üblicherweise die Client-IP. */

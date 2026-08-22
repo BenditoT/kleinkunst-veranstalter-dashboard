@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 
 import { EventDetail } from "@/components/events/event-detail";
 import { AppShell } from "@/components/layout/app-shell";
-import { getDataPort, getRequestOrganizationContext } from "@/lib/data";
+import {
+  getDataPort,
+  getPrerenderOrganizationContext,
+  getRequestOrganizationContext,
+} from "@/lib/data";
 
 type EventDetailPageProps = {
   params: {
@@ -14,7 +18,7 @@ type EventDetailPageProps = {
 // Demo-Organisation vorgerendert. Der Kontext kommt aus dem Datenport
 // (O3), nicht mehr aus einem Direktimport der Demodaten.
 export async function generateStaticParams() {
-  const context = await getRequestOrganizationContext();
+  const context = await getPrerenderOrganizationContext();
   const events = await getDataPort().listEvents(context);
 
   return events.map((event) => ({ slug: event.slug }));

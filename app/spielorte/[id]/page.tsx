@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { VenueDetail } from "@/components/venues/venue-detail";
-import { getDataPort, getRequestOrganizationContext } from "@/lib/data";
+import {
+  getDataPort,
+  getPrerenderOrganizationContext,
+  getRequestOrganizationContext,
+} from "@/lib/data";
 
 type VenueDetailPageProps = {
   params: {
@@ -14,7 +18,7 @@ type VenueDetailPageProps = {
 // Demo-Organisation vorgerendert. Der Kontext kommt aus dem Datenport
 // (O3), nicht mehr aus einem Direktimport der Demodaten (S2).
 export async function generateStaticParams() {
-  const context = await getRequestOrganizationContext();
+  const context = await getPrerenderOrganizationContext();
   const venues = await getDataPort().listVenues(context);
 
   return venues.map((venue) => ({ id: venue.id }));

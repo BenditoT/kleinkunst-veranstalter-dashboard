@@ -53,14 +53,68 @@ export function getDataPort(): DataPort {
 }
 
 /**
- * Einziger Ort, an dem ein Mandantenkontext entsteht.
+ * Einziger Ort, an dem ein Mandantenkontext entsteht (O7).
  *
- * Ab Sprint 2 kommt der Kontext aus der Auth-Session
- * (`lib/auth/port.ts` → `resolveOrganizationContext`). Bis dahin liefert
- * die Demo-Organisation den Kontext. Diese Funktion darf NIE einen Wert
- * aus Formdaten, Query-Parametern oder Headern übernehmen.
+ * Der Kontext kommt aus der Auth-Session:
+ * `requireSession()` → `resolveOrganizationContext()`. Liefert die
+ * Mitgliedschaftsprüfung `null`, gibt es KEINEN Kontext — es wird
+ * geworfen (403), nicht stillschweigend auf die Demo-Organisation
+ * zurückgefallen. Diese Funktion übernimmt NIE einen Wert aus Formdaten,
+ * Query-Parametern, Headern oder Client-Cookies.
+ *
+ * `requestedOrganizationId` ist ein *Wunsch* (Organisationswechsel) und
+ * wird immer gegen `session.memberships` geprüft. Ohne Angabe gilt
+ * `activeOrganizationId` aus der Session — serverseitig gesetzt über
+ * `/api/auth/organization`, nicht vom Client.
+ *
+ * Im Demo-Modus (`NEXT_PUBLIC_DEMO_MODE` an, GitHub-Pages-Export und
+ * öffentlicher Demodienst) gibt es keine Session und keinen Server, der
+ * eine prüfen könnte: dort liefert die Demo-Organisation den Kontext, und
+ * es liegen ausschließlich erfundene Daten vor (ADR 3, Entscheidung 1).
+ * Der Import des Auth-Ports passiert erst in diesem Zweig — sonst zöge
+ * jeder Datenzugriff `next/headers` mit sich, auch im statischen Export.
  */
-export async function getRequestOrganizationContext(): Promise<OrganizationContext> {
+export async function getRequestOrganizationContext(
+  requestedOrganizationId?: string,
+): Promise<OrganizationContext> {
+  const { isAuthGuardEnabled } = await import("../auth/mode");
+
+  if (!isAuthGuardEnabled()) {
+    return demoOrganizationContext;
+  }
+
+  const { createAuthPort } = await import("../auth");
+  const { OrganizationAccessError } = await import("../auth/errors");
+
+  // `redirectOnMissingSession`: ohne Session gibt es einen Redirect auf
+  // /login (die Middleware hat das in aller Regel schon erledigt — hier
+  // steht die zweite Verteidigungslinie, falls eine Route je am Matcher
+  // vorbeikommt).
+  const auth = createAuthPort({ redirectOnMissingSession: true });
+  const session = await auth.requireSession();
+  const context = auth.resolveOrganizationContext(session, requestedOrganizationId);
+
+  if (!context) {
+    throw new OrganizationAccessError(requestedOrganizationId);
+  }
+
+  return context;
+}
+
+/**
+ * Kontext für `generateStaticParams()` — und NUR dafür.
+ *
+ * `generateStaticParams` läuft zur Buildzeit, wo es per Definition keinen
+ * Request und keine Session gibt; ein `cookies()`-Aufruf ist dort
+ * verboten. Vorgerendert werden deshalb die Pfade der Demo-Organisation
+ * (statischer Export = ausschließlich erfundene Daten).
+ *
+ * Das ist keine Lücke: welche Pfade existieren, ist keine Autorisierung.
+ * Der eigentliche Seitenaufruf geht im Server-Pfad weiterhin durch
+ * `getRequestOrganizationContext()` und liefert für eine fremde
+ * Organisation nichts.
+ */
+export async function getPrerenderOrganizationContext(): Promise<OrganizationContext> {
   return demoOrganizationContext;
 }
 
