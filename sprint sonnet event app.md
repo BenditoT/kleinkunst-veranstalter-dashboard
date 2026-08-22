@@ -1,131 +1,87 @@
-# Sprint Sonnet — Event Management App (Datenport-Restumbau, 31.07.2026)
+# Sprint Sonnet — Event Management App (Sprint 2 Nacharbeit: Auth-Nachweis im Server-Pfad, 22.08.2026)
 
 > **Diese Datei ist selbsterklärend — keine Chat-Historie nötig.**
-> Erstellt von der Opus-Session (O1–O5) als Nachfolgerin des abgearbeiteten Sonnet-Sprints S1–S7.
-> Stand: alles committet, `npm run quality` (Lint, Typecheck, **49** Unit-Tests, Build) und `npm run test:e2e` (12 Tests) grün.
+> Erstellt nach Abschluss des Opus-Sprints O6–O8 (Auth-Port, Mandantengrenze, RBAC). Kanonische Datei — die vorherige Fassung war abgearbeitet und wurde ersetzt.
 
 ## Kontext
 
-Kleinkunst-Veranstalter-Dashboard, Next.js 14 + React 18 + TypeScript, App Router, statischer Export für GitHub Pages.
+Kleinkunst-Veranstalter-Dashboard, Next.js 14 + React 18 + TypeScript, Ordner `Event Management App`.
 
-Die Opus-Session hat einen **Datenport** eingezogen (`lib/data/`, ADR: `docs/architecture/data-port.md`). UI-Code holt Daten nicht mehr direkt aus `lib/domain/sample-data.ts`, sondern über den Port — mit einem `OrganizationContext` als erstem Argument. Der **Events-Pfad ist vollständig umgestellt** und dient als Vorlage. Übrig ist mechanische Fleißarbeit nach exakt demselben Muster: **7 Dateien**.
+Sprint 2 (Auth & Mandantengrenze) ist **inhaltlich fertig und committet** (`7850e9c`, `1849a5e`, `5dbd5ea`):
 
-**Warum das wichtig ist:** Sprint 2 (Auth & Mandantengrenze) kann erst dann sauber greifen, wenn keine Komponente mehr an der Organisation vorbei an Daten kommt. Solange ein Direktimport übrig ist, gibt es eine Stelle, die Daten aller Mandanten sieht.
+- `lib/auth/adapters/local-credentials.ts` — Anmeldung gegen erfundene Testnutzer, `crypto.scrypt`-Hashes, Rate-Limiting (5 Versuche / 15 Min).
+- `lib/auth/session-cookie.ts` — signiertes `httpOnly`+`secure`+`SameSite=Lax`-Cookie, serverseitig verifiziert.
+- `middleware.ts` + `lib/auth/route-guard.ts` — alles außer `/login`, `/register`, `/forgot-password` und den Auth-Endpunkten verlangt eine Session; fremde `?org=` liefert 403 statt Redirect.
+- `lib/data/index.ts` → `getRequestOrganizationContext()` — Kontext kommt aus der Session, bei fehlender Mitgliedschaft `OrganizationAccessError` (403), kein stiller Rückfall auf die Demo-Organisation.
+- `lib/auth/rbac.ts` — eine einzige Rollenregel; `viewer` kann nicht schreiben, Durchsetzung serverseitig vor dem Event-Formular.
 
-**Qualitäts-Baseline (muss nach JEDER Aufgabe grün bleiben):** `npm run quality` + `npm run test:e2e`.
-Vor Start ggf. `npm ci` und `npx playwright install chromium`.
+**Was fehlt, ist der Nachweis im laufenden Server-Pfad.** Die 12 vorhandenen E2E-Tests laufen alle gegen den statischen Demo-Export (`NEXT_PUBLIC_DEMO_MODE=true`), in dem es per Definition **keine Middleware und keine API-Routen** gibt (`next build` warnt das ausdrücklich an). Der komplette Auth-Pfad ist damit heute nur durch Unit-Tests belegt (87 grün), nicht durch einen echten Browserlauf. Genau das ist die Aufgabe dieses Sprints — mechanische, klar umrissene Arbeit ohne Architekturentscheidungen.
+
+**Qualitäts-Baseline (nach JEDER Aufgabe einzeln, nicht nur am Ende):** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npx playwright test` — alle grün. Aktueller Stand, an dem du dich messen lässt: Lint clean, Typecheck clean, **87** Unit-Tests, Build erfolgreich, **12** E2E grün.
 
 ## Scope-Grenze
 
-**Mach NUR die Aufgaben S1–S4. Fasse NICHT an:**
+**Mach NUR S1–S4. Fasse NICHT an:**
 
-- `db/migrations/`, `supabase/archive/` (Schema/RLS — entschieden, siehe ADR 1)
-- `lib/data/port.ts`, `lib/auth/port.ts` (Interfaces — entschieden, nur benutzen, nicht ändern)
-- Auth-Umbau, echte Sessions, geschützte Routen (→ Sprint 2 des 10-Sprint-Plans)
-- Dark-Mode / `dark:`-Utilities (Entscheidung O5: Toggle ist bewusst raus, siehe `docs/architecture/theming.md`)
-- Keine neuen Features, keine neuen Dependencies
-
----
-
-## Das Muster (Vorlage: Events-Pfad)
-
-**Server-Komponente holt, Client-Komponente bekommt Props.**
-
-```tsx
-// app/veranstaltungen/page.tsx  (Server-Komponente, async)
-import { getDataPort, getRequestOrganizationContext } from "@/lib/data";
-
-export default async function EventsPage() {
-  const context = await getRequestOrganizationContext();
-  const port = getDataPort();
-  const [events, venues, artists] = await Promise.all([
-    port.listEvents(context),
-    port.listVenues(context),
-    port.listArtists(context),
-  ]);
-
-  return (
-    <AppShell activeItem="events">
-      <EventsWorkspaceClient events={events} venues={venues} artists={artists} />
-    </AppShell>
-  );
-}
-```
-
-Die Komponente selbst bekommt die Listen als Props und importiert nichts mehr aus `sample-data`. Ganze Vorlage: `app/veranstaltungen/page.tsx`, `app/veranstaltungen/[slug]/page.tsx`, `components/events/events-workspace-client.tsx`, `components/events/events-workspace.tsx`, `components/events/event-detail.tsx`.
-
-Verfügbare Port-Methoden (`lib/data/port.ts`):
-`listEvents(ctx, filters?)`, `getEventBySlug(ctx, slug)`, `listVenues(ctx)`, `getVenueById(ctx, id)`, `listArtists(ctx)`, `getArtistById(ctx, id)`, `listTasks(ctx)`, `buildSearchIndex(ctx)`.
+- `lib/auth/port.ts`, `lib/data/port.ts` — Interfaces sind entschieden.
+- `lib/auth/rbac.ts`, `lib/auth/route-guard.ts`, `middleware.ts` — Logik ist fertig und getestet. Du schreibst Tests **dagegen**, du änderst sie nicht. Findest du einen echten Fehler: melden und in `HANDOVER.md` dokumentieren, nicht stillschweigend umbauen.
+- `db/migrations/`, `supabase/archive/` — unverändert.
+- `lib/auth/adapters/identity-platform.ts` — bleibt Platzhalter, bis Norbert ein GCP-Projekt bereitstellt.
+- Keine Sprint-3-Features (CRUD, Newsletter, Ticketing, Presse). Der Datenport hat bewusst noch **keine** Schreibmethoden.
+- Kein Dark-Mode, keine neuen Dependencies.
 
 ---
 
 ## Aufgaben
 
-### S1 — Dashboard und Kalender auf den Port umstellen
+### S1 — Zweites Playwright-Projekt `server`
 
-| Datei | Typ | Was passiert |
-| --- | --- | --- |
-| `components/dashboard/dashboard-home.tsx` | Server-Komponente | Props `events`, `venues`, `artists`, `tasks` statt `sample-data`-Import |
-| `app/page.tsx` | Server-Komponente | lädt über den Port und reicht die Props durch |
-| `components/calendar/calendar-workspace.tsx` | **Client** (`"use client"`, `useState`) | Props `events`, `venues`; der `TODO(Sonnet-Sprint)`-Kommentar an `detectVenueConflicts` verschwindet dabei |
-| `app/kalender/page.tsx` | Server-Komponente | lädt über den Port und reicht die Props durch |
+1. `playwright.config.ts`: zusätzlich zum bestehenden Demo-Projekt ein Projekt `server` mit eigenem `webServer`, der mit `NEXT_PUBLIC_DEMO_MODE=false` und einem festen `SESSION_SECRET` (Testwert, mind. 32 Zeichen, nur in der Konfiguration — nicht in einer `.env`, die committet wird) gegen den Node-Build läuft.
+2. Das bestehende Demo-Projekt und seine 12 Tests bleiben **unverändert** grün — der GitHub-Pages-Pfad ist Norberts öffentliche Demo.
+3. Eigenes `testDir` oder `testMatch`, damit Demo-Tests nicht versehentlich im Server-Projekt laufen (und umgekehrt).
 
-`detectVenueConflicts(events, { bufferMinutes, venues })` verlangt `venues` bereits als Argument — die Werte kommen künftig aus den Props, nicht mehr aus dem Modulimport.
+**Akzeptanz:** `npx playwright test` startet beide Projekte; die 12 Demo-Tests laufen weiter, das Server-Projekt läuft gegen einen echten Node-Server.
 
-**Akzeptanz:** kein `sample-data`-Import in den vier Dateien; `/` und `/kalender` sehen unverändert aus; E2E-Kalendertest bleibt grün.
+### S2 — `storageState`-Fixtures pro Rolle und Organisation
 
-### S2 — Detailseiten Künstler/Spielorte auf den Port umstellen
+1. Ein Setup-Projekt (Playwright `dependencies`), das sich über `/api/auth/login` anmeldet und den Session-Cookie als `storageState` ablegt — je eine Datei für: `owner@buehnenblick.test` (owner, Org A), `viewer@buehnenblick.test` (viewer, Org A), `manager@zweitebuehne.test` (manager, Org B), `doppel@buehnenblick.test` (member in A, viewer in B). Zugangsdaten und Rollen stehen in `lib/auth/test-users.ts` und `tests/unit/auth-port.test.ts`.
+2. `storageState`-Dateien in `.gitignore` (Ablauf, keine Artefakte im Repo).
 
-| Datei | Was passiert |
-| --- | --- |
-| `app/kuenstler/[id]/page.tsx` | `generateStaticParams` über `port.listArtists(ctx)`; Seite über `port.getArtistById(ctx, id)`; Props an `ArtistDetail` |
-| `components/artists/artist-detail.tsx` | Props `events`, `venues` statt Import |
-| `app/spielorte/[id]/page.tsx` | `generateStaticParams` über `port.listVenues(ctx)`; Seite über `port.getVenueById(ctx, id)`; Props an `VenueDetail` |
-| `components/venues/venue-detail.tsx` | Props `events` statt Import |
+**Akzeptanz:** Ein Test kann per `test.use({ storageState: … })` als beliebige dieser vier Personen starten, ohne sich selbst anzumelden.
 
-Vorlage 1:1: `app/veranstaltungen/[slug]/page.tsx`.
+### S3 — Negative E2E-Fälle im Server-Projekt
 
-**Achtung statischer Export:** `generateStaticParams` muss `async` sein und über den Port laufen — sonst brechen die vorgerenderten Detailseiten weg (E2E prüft alle Detail-URLs).
+Mindestens diese Fälle, jeder als eigener Test mit sprechendem deutschem Namen:
 
-**Akzeptanz:** `npm run build:pages` erzeugt weiterhin alle 4 Künstler- und 4 Spielort-Seiten; E2E grün.
+1. Unangemeldeter Aufruf von `/veranstaltungen` → Redirect auf `/login?returnTo=/veranstaltungen`.
+2. Anmeldung mit falschem Passwort → deutsche Fehlermeldung, **kein** Session-Cookie gesetzt.
+3. Sechster Fehlversuch in Folge → Rate-Limit-Meldung (nicht dieselbe wie „falsches Passwort").
+4. Angemeldet als `viewer` → `/veranstaltungen/neu` zeigt „Keine Berechtigung", das Formular ist **nicht** im DOM.
+5. Angemeldet als `owner` in Org A → Aufruf mit `?org=<Org-B-ID>` liefert 403, **nicht** die Daten aus A und nicht die aus B.
+6. Abmelden über `/api/auth/logout` → anschließender Aufruf einer geschützten Route führt wieder auf `/login`.
 
-### S3 — Modulübersicht und Event-Formular auf den Port umstellen
+**Akzeptanz:** Alle sechs laufen grün und schlagen fehl, wenn man den jeweiligen Guard testweise entfernt (kurz prüfen — ein Test, der immer grün ist, ist wertlos).
 
-| Datei | Typ | Was passiert |
-| --- | --- | --- |
-| `components/modules/module-overview.tsx` | Server-Komponente, von 8 Seiten benutzt | Props `events`, `venues` |
-| die 8 aufrufenden Seiten (`app/gema`, `app/finanzen`, `app/newsletter`, `app/ticketing`, `app/ki-assistent`, `app/einstellungen`, `app/kuenstler/page.tsx`, `app/spielorte/page.tsx`) | Server-Komponenten | `async`, laden über den Port, reichen die Props durch |
-| `components/events/event-form-screen.tsx` | **Client** | Props `venues`, `artists` (füllen die Auswahlfelder) |
-| `app/veranstaltungen/neu/page.tsx` | Server-Komponente | lädt über den Port |
+### S4 — CI-Gate und Doku nachziehen
 
-Wiederholung vermeiden: Wenn dir das achtfache Laden in den Modulseiten zu redundant vorkommt, ist eine kleine Server-Hilfsfunktion (z. B. `loadModuleOverviewData()` in `lib/data/`) erlaubt — aber **keine** neue Abstraktionsebene über dem Port.
+1. `.github/workflows/quality.yml`: das Server-Projekt mit ausführen (der Pages-Deploy hängt laut `deploy-github-pages.yml` an diesem Gate). `SESSION_SECRET` als Repository-Variable oder fest gesetzter Testwert im Workflow — **kein** Produktivgeheimnis.
+2. `README.md`: kurzer Abschnitt „Lokal mit Anmeldung testen" — wie man mit `NEXT_PUBLIC_DEMO_MODE=false` startet und welche Testzugangsdaten es gibt (mit dem Hinweis: erfundene Personen, nur Test).
+3. `docs/architecture/auth-port.md`: Abschnitt „Was offen ist" auf den neuen Stand bringen.
 
-**Akzeptanz:** `grep -rn "sample-data" app components` liefert **null** Treffer. Der Formular-E2E-Test (Standardwerte `venue-kupfersaal` / `artist-mara-sol`) bleibt grün.
-
-### S4 — Nachweis und Aufräumen
-
-1. **Regressionstest ergänzen** in `tests/unit/data-port.test.ts` (oder einer neuen Datei): eine Prüfung, dass kein UI-Modul mehr `sample-data` importiert — im Stil der bestehenden Dateiinhalts-Tests, mit Begründungskommentar (Testphilosophie siehe `docs/architecture/data-port.md`, Abschnitt 6).
-2. **Bundle-Nachweis:** nach `npm run build` prüfen, ob der komplette Datenbestand aus den Client-Chunks verschwunden ist:
-   ```
-   grep -rl "monthlySlots\|bookedSlots" .next/static/chunks
-   ```
-   Vor diesem Sprint: 2 Treffer (Kalender, Event-Formular). Ziel: 0 Treffer. Ergebnis in der Übergabe dokumentieren.
-3. `docs/architecture/data-port.md`, Abschnitt „Was offen ist": Restliste auf „erledigt" aktualisieren (Datum, ein Satz).
-
-**Akzeptanz:** `npm run quality` + `npm run test:e2e` grün; Bundle-Nachweis dokumentiert.
+**Akzeptanz:** `npm run quality` und beide Playwright-Projekte grün; die CI läuft dieselbe Menge Tests wie lokal.
 
 ---
 
-## Stolpersteine (aus der Opus-Session)
+## Abschlusspflicht (nicht verhandelbar)
 
-- **JSX-Kommentare:** `{/* … */}` darf nicht als erstes Element in einem Ternary-Zweig stehen (`cond ? ( {/*…*/} <div/> ) : …` ist ein Syntaxfehler). Kommentar davor setzen.
-- **`ulimit -n 65536`** in jedem Sandbox-Bash-Aufruf setzen, sonst brechen Lint/Build sporadisch mit `ENFILE` ab. Das ist kein Code-Bug — Befehl einfach wiederholen.
-- **Playwright** braucht ggf. `libXdamage.so.1`; ohne `sudo`: `.deb` per `apt-get download libxdamage1` ziehen, mit `dpkg-deb -x` entpacken, `LD_LIBRARY_PATH` setzen.
-- **Bei rotem Test: NIE Timeouts erhöhen.** Screenshot/Trace auswerten (Skill `flaky-ci-echter-bug-diagnose`).
-- `getRequestOrganizationContext()` ist die einzige Stelle, an der ein Mandantenkontext entsteht. Nicht umgehen, nicht duplizieren, `organizationId` nie aus Props/URL/Formdaten übernehmen.
+1. Alle Ergebnisse committen (**kein Push** — der SSH-Key liegt in Norberts macOS-Schlüsselbund, das kann nur er).
+2. `HANDOVER.md` kanonisch aktualisieren (keine neue Versionsdatei): Zählwerte (Unit-/E2E-Tests), was fertig ist, was offen bleibt.
+3. Session-Abschluss nach Norberts Format: klickbare Links, **max. 1 Terminal-Befehl**, Abschnitt „Was Norbert jetzt tut" mit genau EINER Handlung.
 
-## Abschlusspflicht
+## Stolpersteine (aus der Opus-Session, spart dir Zeit)
 
-1. Alles committen (**kein Push** — das macht Norbert).
-2. `HANDOVER.md` aktualisieren (kanonische Datei, keine neue Version): erledigte Aufgaben, offene Reste, Sprint-2-Startfähigkeit.
-3. Session-Abschluss nach Norberts Format: klickbare Links, **max. 1 Terminal-Befehl**, Abschnitt **„Was Norbert jetzt tut"** mit genau EINER Handlung.
+- **Der Ordner-Mount ist langsam.** `next build` läuft dort in Minuten und wird vom Tool-Timeout abgeschnitten. Lösung: Projekt ohne `node_modules`/`.next`/`.git` nach `/tmp/emapp` kopieren (`tar`-Pipe), dort `npm ci` (~90 s) und bauen (~11 s). Hintergrundprozesse überleben keinen Bash-Aufruf, `nohup` hilft nicht.
+- **Playwright braucht `libXdamage.so.1`**, das in der Sandbox fehlt: `apt-get download libxdamage1`, `dpkg-deb -x`, dann `LD_LIBRARY_PATH=/tmp/deps/root/usr/lib/aarch64-linux-gnu` setzen. Kein Repo-Fix, reine Umgebung.
+- **`ulimit -n 65536` vor Lint/Build setzen**, sonst bricht der Build sporadisch mit `ENFILE` ab — kein Code-Bug, Befehl einfach wiederholen.
+- Git-Lock-Dateien (`.git/index.lock`, `.git/HEAD.lock`) können im Mount hängen bleiben und lassen sich per `rm` erst nach Freigabe der Löschberechtigung entfernen.
+- **Bei rotem Test: NIE Timeouts erhöhen** — Trace/Screenshot auswerten, echte Ursache finden.

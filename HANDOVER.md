@@ -2,50 +2,53 @@
 
 **Ziel / Fertig wenn:** Provider-neutrale, mandantenfähige Next.js-Veranstaltungsplattform für Kleinkunst-Spielstätten (Events, Kalender, GEMA, Finanzen, Newsletter, Presse, Ticketing, KI-Assistent). Fertig laut `docs/sprints/README.md`: alle 10 Sprints abgeschlossen — insbesondere Sprint 10 (DSGVO, Resilienz, Produktion). Bis dahin: kein produktiver Go-Live mit echten Personendaten.
 
-## Stand (01.08.2026 — Sonnet-Sprint S1–S4 „Datenport-Restumbau" abgeschlossen, committet)
+## Stand (22.08.2026 — Sprint 2 „Auth & Mandantengrenze" (O6–O8) abgeschlossen, committet)
 
-Nach dem Opus-Sprint (O1–O5, committet als `deca983`) blieben sieben Dateien übrig, die den Datenbestand noch direkt aus `lib/domain/sample-data.ts` importiert haben statt über den neuen `DataPort`. Dieser Sprint hat sie **mechanisch nach dem Events-Pfad-Muster** umgestellt (Server-Komponente holt über den Port, Client-Komponente bekommt Props). `npm run quality` (Lint, Typecheck, **50** Unit-Tests, Build) und `npm run test:e2e` (**12** Tests) laufen grün — nach jeder der vier Teilaufgaben einzeln verifiziert, nicht nur am Ende.
+Die Demo-PIN und die simulierten Anmeldeformulare sind durch einen echten, provider-neutralen Auth-Port ersetzt. `npm run lint`, `npm run typecheck`, `npm test` (**87** Unit-Tests), `npm run build`, `npm run build:pages` (statischer Export) und `npx playwright test` (**12** E2E) sind grün.
 
-- **S1 — Dashboard und Kalender:** `components/dashboard/dashboard-home.tsx` bekommt `events`/`venues`/`artists`/`tasks` als Props von `app/page.tsx` (jetzt async, lädt über den Port). `components/calendar/calendar-workspace.tsx` ist jetzt eine reine Client-Komponente mit Props `events`/`venues` von `app/kalender/page.tsx`; der `TODO(Sonnet-Sprint)`-Kommentar an `detectVenueConflicts` ist weg.
-- **S2 — Detailseiten Künstler/Spielorte:** `app/kuenstler/[id]/page.tsx` und `app/spielorte/[id]/page.tsx` haben jetzt ein async `generateStaticParams()`, das über `port.listArtists`/`port.listVenues` läuft, und laden die Einzelseite über `port.getArtistById`/`port.getVenueById`. `artist-detail.tsx`/`venue-detail.tsx` bekommen `events`/`venues` als Props. `npm run build` erzeugt weiterhin alle 4 Künstler- und 4 Spielort-Detailseiten statisch.
-- **S3 — Modulübersicht und Event-Formular:** `components/modules/module-overview.tsx` (von 8 Seiten benutzt: `gema`, `finanzen`, `newsletter`, `ticketing`, `ki-assistent`, `einstellungen`, `kuenstler`, `spielorte`) bekommt `events`/`venues` als Props. Um das achtfache identische Laden zu vermeiden, gibt es eine kleine Hilfsfunktion `loadModuleOverviewData()` in `lib/data/index.ts` — **kein neuer Port-Layer**, nur Boilerplate-Vermeidung, ruft selbst `getRequestOrganizationContext()` + `getDataPort()` auf. `components/events/event-form-screen.tsx` ist jetzt Client-Komponente mit Props `venues`/`artists`; `app/veranstaltungen/neu/page.tsx` lädt über den Port. E2E-Formulartest (Standardwerte `venue-kupfersaal`/`artist-mara-sol`) bleibt grün, weil die Reihenfolge der Demodaten erhalten ist.
-- **S4 — Nachweis und Aufräumen:** Regressionstest ergänzt in `tests/unit/data-port.test.ts` („kein UI-Modul unter `app/` oder `components/` importiert das Demodatensatz-Modul") — läuft rekursiv über beide Verzeichnisse, kein Implementierungsdetail festgeschrieben (Testphilosophie ADR 2, Abschnitt 6). Erklärende Code-Kommentare wurden bewusst ohne den literalen String „sample-data" formuliert, damit sie den Akzeptanztest nicht selbst verfälschen. `docs/architecture/data-port.md` Abschnitt „Was offen ist" aktualisiert.
+- **O6 — Auth-Port implementiert** (`7850e9c`): `lib/auth/adapters/local-credentials.ts` als lokaler Test-Adapter gegen dieselbe `AuthPort`-Schnittstelle, die später der Identity-Platform-Adapter erfüllt. Passwörter mit `crypto.scrypt` gehasht und per `timingSafeEqual` geprüft (Dummy-Hash für unbekannte E-Mails, damit die Rechenzeit nicht verrät, wer existiert). Session als signiertes `httpOnly`+`secure`+`SameSite=Lax`-Cookie (`lib/auth/session-cookie.ts`), serverseitig verifiziert. Rate-Limiting real verdrahtet (5 Fehlversuche / 15 Min pro E-Mail+IP, der sechste wird gar nicht mehr geprüft). Login-, Register- und Reset-Formular hängen an `/api/auth/*` und liefern echte deutsche Fehlermeldungen.
+- **O7 — Mandantengrenze verdrahtet** (`1849a5e`): `getRequestOrganizationContext()` (`lib/data/index.ts`) holt den Kontext aus der Session statt hartcodiert aus der Demo-Organisation; ohne Mitgliedschaft `OrganizationAccessError` (403), **kein** stiller Rückfall auf Demodaten. `middleware.ts` + `lib/auth/route-guard.ts` schützen alles außer `/login`, `/register`, `/forgot-password` und den Auth-Endpunkten (Positivliste — eine neue Route ist automatisch geschützt). Unauthentifiziert → Redirect auf `/login?returnTo=…`; angemeldet ohne Mitgliedschaft → 403, bewusst kein Redirect (sonst Anmeldeschleife). Organisationswechsel nur über `/api/auth/organization` als geprüfte Aktion, nie über Query-Parameter. Neu: `getPrerenderOrganizationContext()` für `generateStaticParams()`, weil es zur Buildzeit per Definition keine Session gibt.
+- **O8 — RBAC serverseitig durchgesetzt** (`5dbd5ea`): `lib/auth/rbac.ts` als **einzige** Stelle, die die Rollenrangfolge auswertet (`AuthPort.hasRoleAtLeast()` delegiert dorthin, statt sie ein zweites Mal zu interpretieren). Schreibschwelle ist `member`, `viewer` ist reine Lese-Rolle. `/veranstaltungen/neu` prüft die Rolle **vor** dem Laden der Daten und liefert dem `viewer` `AccessDeniedNotice` statt des Formulars — das Formular wird gar nicht erst ausgeliefert. `tests/unit/rbac.test.ts` (10 Tests) beweist das Verhalten, nicht nur die Typen: unbekannte Rolle → kein Zugriff, `viewer` → `RoleRequiredError` (403) ohne Organisationsdetails in der Meldung, hohe Rolle in Organisation A erzeugt kein Schreibrecht in B.
 
-**Bundle-Nachweis (Kernziel des Sprints):** `grep -rl "monthlySlots\|bookedSlots" .next/static/chunks` nach `npm run build` — **vorher 2 Treffer** (Kalender-Chunk, Event-Formular-Chunk), **jetzt 0 Treffer**. Der komplette Datenbestand steckt nicht mehr in irgendeinem Client-Bundle.
+**Zwei Welten, ein Schalter** (`lib/auth/mode.ts`): `NEXT_PUBLIC_DEMO_MODE` an (Default) = statischer GitHub-Pages-Export, keine Middleware, keine API-Routen — dort gilt weiterhin das PIN-Gate als Sichtschutz und die harte Regel „nur erfundene Daten". `NEXT_PUBLIC_DEMO_MODE=false` = Node-Server-Pfad (`output: "standalone"`), PIN verschwindet, dafür greifen Middleware, Session-Prüfung und Mandantengrenze. Ein Schalter statt zwei, damit es keinen Zustand geben kann, in dem weder das eine noch das andere greift.
 
-**Verifikation (nach jeder der vier Teilaufgaben einzeln, nicht nur am Ende):** `npm run lint` clean, `npm run typecheck` clean, `npm test` 50/50 (vorher 49, ein Regressionstest ergänzt), `npm run build` erfolgreich (33 statische Seiten, alle 4 Künstler-/4 Spielort-Detailseiten weiterhin vorgerendert), `npx playwright test` 12/12 grün (~20–24s je Lauf). `grep -rn "sample-data" app components` liefert 0 Treffer.
-
-**Scope eingehalten:** `db/migrations/`, `supabase/archive/`, `lib/data/port.ts`, `lib/auth/port.ts` nicht angefasst. Keine neuen Dependencies. Kein Dark-Mode. Kein Auth-Umbau.
+**Scope eingehalten:** `lib/auth/port.ts`, `lib/data/port.ts`, `db/migrations/`, `supabase/archive/` nicht angefasst. Keine neuen Dependencies. Kein Dark-Mode. Kein GCP-Setup.
 
 ## Offene Punkte
-1. **Push nach `origin/main`** — durch Norbert (Befehl unten). Dieser Commit-Satz enthält S1–S4.
-2. **Sprint 2 (Auth & Mandantengrenze) kann jetzt sauber starten** — keine Komponente kommt mehr am `OrganizationContext` vorbei an Daten. Das war die explizite Voraussetzung aus `sprint sonnet event app.md`.
-3. **Bootstrap-Rolle mit `BYPASSRLS`** im Provisionierungsskript nachziehen, sobald ein echtes Cloud-SQL-Projekt existiert — `FORCE RLS` gilt auch für den App-Owner, Seeds/Migrationen dürfen nicht über die App-Rolle laufen (siehe O2, unverändert offen).
-4. **Kein Backend real angebunden** — weiterhin `DATA_ADAPTER=in-memory`, `BACKEND_PROVIDER=google-cloud` nur als Plan/Default, kein Cloud-SQL-Projekt existiert bisher.
+
+1. **Push nach `origin/main`** — durch Norbert (Befehl unten). Der Push löst die GitHub-Action aus: Qualitäts-Gate (Lint, Typecheck, Unit, Build, E2E) und bei Grün automatisch den GitHub-Pages-Deploy. Es sind **4 Commits** unterwegs.
+2. **Auth-Nachweis im Server-Pfad fehlt noch** — alle 12 E2E-Tests laufen gegen den statischen Demo-Export, in dem es weder Middleware noch API-Routen gibt. Der komplette Auth-Pfad ist heute nur durch Unit-Tests belegt. Aufgabenliste steht fertig in `sprint sonnet event app.md` (zweites Playwright-Projekt `server`, `storageState`-Fixtures pro Rolle/Organisation, sechs negative E2E-Fälle, CI-Gate).
+3. **GCP-Blocker (nur Norbert):** Ein echter Identity-Platform-Adapter braucht ein Google-Cloud-Projekt mit OAuth-Credentials (Account, ggf. Billing). `lib/auth/adapters/identity-platform.ts` bleibt bis dahin Platzhalter. Alles außer der Provider-Anbindung selbst ist fertig und getestet.
+4. **`SESSION_SECRET` für den Server-Pfad** — im Produktivbetrieb aus Secret Manager, mindestens 32 Zeichen. Steht in `.env.example`, ist nirgends im Repo als Wert hinterlegt.
+5. **Bootstrap-Rolle mit `BYPASSRLS`** im Provisionierungsskript nachziehen, sobald ein echtes Cloud-SQL-Projekt existiert — `FORCE RLS` gilt auch für den App-Owner (unverändert offen seit O2).
+6. **Kein Backend real angebunden** — weiterhin `DATA_ADAPTER=in-memory`. Der Datenport hat bewusst noch keine Schreibmethoden; CRUD ist Sprint 3.
 
 ## Nächster Schritt
-Push ausführen (Befehl unten). Für Sprint 2 (Auth & Mandantengrenze) eine neue Sonnet-/Opus-Session mit `docs/architecture/auth-port.md` (ADR 3) als Ausgangspunkt starten — der Auth-Port-Entwurf aus O4 steht bereits.
+
+Push ausführen (Befehl unten), dann `sprint sonnet event app.md` in einer Sonnet-Session abarbeiten (Auth-Nachweis im Server-Pfad). Danach Sprint 3 (CRUD) auf Basis des jetzt sauberen Kontext-Pfads.
 
 ## Mach weiter
-> Ich arbeite an der „Event Management App" (Kleinkunst-Veranstalter Dashboard, Next.js 14 + React 18 + TypeScript). Sonnet-Sprints S1–S7 und S1–S4 (Datenport-Restumbau) sowie Opus-Sprint O1–O5 sind abgeschlossen und committet. Lies `HANDOVER.md`, dann `docs/architecture/auth-port.md` (ADR 3) als Grundlage für Sprint 2 (Auth & Mandantengrenze). `npm run quality` + `npm run test:e2e` müssen nach jeder Aufgabe grün bleiben; vor Start ggf. `npm ci` und `npx playwright install chromium` (in Sandboxen ggf. `libXdamage.so.1` fehlend — nicht die App, sondern die Umgebung).
+
+> Ich arbeite an der „Event Management App" (Kleinkunst-Veranstalter Dashboard, Next.js 14 + React 18 + TypeScript). Sprint 2 (Auth & Mandantengrenze, O6–O8) ist abgeschlossen und committet. Lies `HANDOVER.md`, dann `sprint sonnet event app.md` — das ist der nächste Auftrag. `npm run lint`/`typecheck`/`test`/`build` und `npx playwright test` müssen nach jeder Aufgabe grün bleiben (Baseline: 87 Unit-Tests, 12 E2E). Sandbox-Stolpersteine stehen unten in dieser Datei.
 
 ## Ressourcen & Dateien
-- `docs/architecture/backend-provider.md` (ADR 1), `data-port.md` (ADR 2, jetzt vollständig umgesetzt), `auth-port.md` (ADR 3 — Ausgangspunkt für Sprint 2), `theming.md` (ADR 4)
-- `lib/data/` — Datenport (`port.ts` Interface — NICHT ändern, `context.ts`, `in-memory-adapter.ts`, `index.ts` Factory inkl. `loadModuleOverviewData()`)
-- `lib/auth/port.ts` — Auth-Port-Skizze für Sprint 2 (nur Typen, keine Implementierung) — NICHT ändern ohne Sprint-2-Auftrag
-- `lib/auth/pin.ts` — konsolidierte Demo-PIN-Logik (eine Quelle: `NEXT_PUBLIC_DEMO_PIN`)
-- `db/migrations/202607080001_core_schema.sql` — kanonisches Schema (RLS-gehärtet); `supabase/archive/` — archivierter Zweitstand, NICHT ändern
-- `tests/unit/data-port.test.ts` — Mandantentrennungs-Nachweis (7 Tests) + Regressionstest gegen Direktimporte in `app`/`components` (S4, 1 Test)
-- `docs/sprints/README.md` — vollständiger 10-Sprint-Plan, Rollen, Definition of Done
+
+- `docs/architecture/backend-provider.md` (ADR 1), `data-port.md` (ADR 2), `auth-port.md` (ADR 3 — jetzt umgesetzt), `theming.md` (ADR 4)
+- `lib/auth/` — `port.ts` (Interface, NICHT ändern), `adapters/local-credentials.ts` (Test-Adapter), `adapters/identity-platform.ts` (Platzhalter), `session-cookie.ts`, `password.ts`, `password-policy.ts`, `rate-limit.ts`, `rbac.ts` (Rollenregel), `route-guard.ts` (Guard-Entscheidung), `mode.ts` (Demo/Server-Schalter), `errors.ts`, `test-users.ts` (erfundene Personen), `pin.ts` (Demo-Sichtschutz)
+- `middleware.ts` — erste Verteidigungslinie; `lib/data/index.ts` — zweite (Kontext + Mitgliedschaft)
+- `app/api/auth/` — `login`, `logout`, `register`, `password-reset`, `organization`
+- `tests/unit/` — `auth-port.test.ts` (18), `route-guard.test.ts` (9), `rbac.test.ts` (10), `data-port.test.ts` (8, Mandantentrennung + Regressionstest gegen Direktimporte)
+- `docs/sprints/README.md` — vollständiger 10-Sprint-Plan
 - `v2/` — Preact+htm UX-Demo (GitHub Pages), NICHT die Produktarchitektur, nur UX-Referenz
 
 ## Hinweise & Stolpersteine
-- `organization_id` NIE aus untrusted Formdaten/URL/Cookie — nur serverseitig aus der Session (`resolveOrganizationContext()`, Sprint 2).
-- `FORCE ROW LEVEL SECURITY` gilt auch für den Tabellen-Owner — Bootstrap/Seed/Migration brauchen eine eigene Rolle mit `BYPASSRLS` oder `SECURITY DEFINER`-Funktionen, sonst schlägt sogar das Anlegen der ersten Organisation fehl.
+
+- `organization_id` NIE aus untrusted Formdaten/URL/Cookie — nur serverseitig aus der Session. Der `?org=`-Parameter ist ausdrücklich nur ein *Wunsch* und wird immer gegen `session.memberships` geprüft.
+- Rollenprüfung im Client (Button ausblenden) ist Bequemlichkeit, kein Schutz — die Ablehnung muss serverseitig passieren.
+- `FORCE ROW LEVEL SECURITY` gilt auch für den Tabellen-Owner — Bootstrap/Seed/Migration brauchen eine eigene Rolle mit `BYPASSRLS`.
 - Die Demo-PIN ist **kein Secret und kein Auth** — nur Sichtschutz für die öffentliche GitHub-Pages-Demo mit ausschließlich erfundenen Daten.
-- Dark-Mode-Toggle bewusst entfernt, nicht vergessen — Backlog-Punkt in `docs/architecture/theming.md`, erst nach Sprint 5 sinnvoll (stabile Komponentenlandschaft).
-- `node_modules`/`.next` in der Sandbox können auf eine tote andere Session verweisen (Symlink) → Löschung erlauben, `npm ci` neu.
-- Playwright-Browser brauchen `libXdamage.so.1` — fehlt in manchen Sandboxen ohne `sudo`; notfalls `.deb` per `apt-get download` ziehen, mit `dpkg-deb -x` entpacken, `LD_LIBRARY_PATH` setzen (kein Repo-Fix nötig, nur Sandbox).
-- `ulimit -n` in der Sandbox ggf. auf einen hohen Wert setzen (`ulimit -n 65536`) — sonst brechen Lint/Build sporadisch mit `ENFILE` ab (Datei-Handle-Erschöpfung, kein Code-Bug, gleichen Befehl wiederholen).
-- **Sandbox-Hintergrundprozesse überleben keinen Bash-Aufruf** (bwrap-Sandbox mit `--unshare-pid --die-with-parent` — beim Ende eines Tool-Aufrufs stirbt der komplette Prozessbaum). `npm run quality`/`test:e2e` laufen deshalb als Einzelschritte im Vordergrund (`lint`, `typecheck`, `test`, `build` separat; `test:e2e` passt komplett — Build + Server + 12 Tests — in ~20–25s in einen einzelnen Aufruf).
-- Bei rotem Test: NIE Timeouts erhöhen — Trace/Screenshot auswerten (Regel + Skill `flaky-ci-echter-bug-diagnose`).
+- **Der Ordner-Mount ist für `next build` zu langsam** (Tool-Timeout schneidet ab). Lösung: Projekt ohne `node_modules`/`.next`/`.git` per `tar`-Pipe nach `/tmp/emapp` kopieren, dort `npm ci` (~90 s) und bauen (~11 s). Hintergrundprozesse überleben keinen Bash-Aufruf — `nohup`/`setsid` helfen nicht.
+- **Playwright braucht `libXdamage.so.1`**: `apt-get download libxdamage1`, `dpkg-deb -x`, `LD_LIBRARY_PATH=/tmp/deps/root/usr/lib/aarch64-linux-gnu` setzen. Reine Umgebung, kein Repo-Fix.
+- `ulimit -n 65536` vor Lint/Build setzen — sonst sporadisch `ENFILE` (kein Code-Bug, Befehl wiederholen).
+- Git-Lock-Dateien (`.git/index.lock`, `.git/HEAD.lock`) bleiben im Mount hängen und lassen sich erst nach Freigabe der Löschberechtigung entfernen.
+- Bei rotem Test: NIE Timeouts erhöhen — Trace/Screenshot auswerten (Skill `flaky-ci-echter-bug-diagnose`).
