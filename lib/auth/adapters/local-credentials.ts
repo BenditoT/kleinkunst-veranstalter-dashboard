@@ -1,7 +1,8 @@
 import { createOrganizationContext, type OrganizationContext } from "../../data/context";
-import { organizationRoles, type OrganizationRole } from "../../domain/types";
+import type { OrganizationRole } from "../../domain/types";
 import { UnauthenticatedError } from "../errors";
 import { verifyPassword } from "../password";
+import { hasRoleAtLeast as hasRoleAtLeastRule } from "../rbac";
 import type {
   AuthPort,
   AuthResult,
@@ -232,16 +233,11 @@ export function createLocalCredentialsAuthPort(options: LocalCredentialsOptions)
     },
 
     hasRoleAtLeast(context: OrganizationContext, minimum: OrganizationRole): boolean {
-      const actual = organizationRoles.indexOf(context.role);
-      const required = organizationRoles.indexOf(minimum);
-
-      if (actual === -1 || required === -1) {
-        return false;
-      }
-
-      // `organizationRoles` ist absteigend nach Rechten sortiert
-      // (owner = 0 … viewer = 4), ein kleinerer Index heißt also mehr Rechte.
-      return actual <= required;
+      // Delegiert an die eine gemeinsame Regel (O8, `lib/auth/rbac.ts`):
+      // die Rangfolge der Rollen wird nirgends ein zweites Mal
+      // interpretiert. Jeder Adapter — auch ein künftiger
+      // Identity-Platform-Adapter — benutzt dieselbe Funktion.
+      return hasRoleAtLeastRule(context.role, minimum);
     },
   };
 }
