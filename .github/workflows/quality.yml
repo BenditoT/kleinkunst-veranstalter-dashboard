@@ -69,7 +69,13 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright E2E tests
+      # Laeuft alle drei Projekte: "chromium" gegen den statischen
+      # GitHub-Pages-Export (Demo-Modus, PIN-Gate) und "server-setup" +
+      # "server" gegen einen echten Node-Server mit NEXT_PUBLIC_DEMO_MODE=false,
+      # wo Middleware, Session-Pruefung, Mandantengrenze und RBAC ueberhaupt
+      # erst existieren (S1-S3). Das Signatur-Geheimnis fuer den Testlauf steht
+      # fest in playwright.config.ts - kein Produktivgeheimnis, siehe .env.example.
+      - name: Run Playwright E2E tests (Demo-Export und Node-Server)
         run: npm run test:e2e
 
       - name: Upload Playwright report

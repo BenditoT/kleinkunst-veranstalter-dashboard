@@ -43,6 +43,31 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Lokal mit Anmeldung testen
+
+`npm run dev` startet standardmaessig den **Demo-Modus**: kein Server-Login,
+stattdessen das PIN-Gate der oeffentlichen GitHub-Pages-Demo. Um den echten
+Anmeldepfad zu sehen (Session-Cookie, Middleware-Routenguard, Mandantengrenze,
+Rollen), muss der Demo-Modus aus sein:
+
+```bash
+NEXT_PUBLIC_DEMO_MODE=false AUTH_SESSION_SECRET=lokales-testgeheimnis-mindestens-32-zeichen npm run dev
+```
+
+Testzugaenge (NUR TEST, erfundene Personen — die Hashes liegen in
+`lib/auth/test-users.ts`, Klartext nur hier und in `.env.example`):
+
+| E-Mail | Passwort | Rolle |
+|---|---|---|
+| `owner@buehnenblick.test` | `Buehnenblick-2026!` | owner, Organisation A |
+| `viewer@buehnenblick.test` | `Nur-Lesen-2026-Test` | viewer, Organisation A (darf nicht schreiben) |
+| `manager@zweitebuehne.test` | `Zweite-Buehne-2026!` | manager, Organisation B |
+| `doppel@buehnenblick.test` | `Beide-Buehnen-2026!` | member in A, viewer in B |
+
+Die beiden Welten schliessen sich gegenseitig aus (ein Schalter, siehe
+`lib/auth/mode.ts`): entweder PIN-Gate ohne Server oder Anmeldung mit Server.
+Es gibt keinen Zustand, in dem weder das eine noch das andere greift.
+
 Die vollstaendige lokale Qualitaetskette entspricht der PR-CI und prueft in
 dieser Reihenfolge Lint, TypeScript, Unit-Tests und den Produktions-Build:
 

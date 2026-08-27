@@ -13,7 +13,12 @@
 
 # next.js
 /.next/
+/.next-server/
 /out/
+
+# Playwright: angemeldete Sessions aus dem Server-Setup (laufen ab, gehoeren
+# nicht ins Repo - siehe tests/e2e/server/auth.setup.ts)
+/tests/e2e/server/.auth/
 
 # production
 /build

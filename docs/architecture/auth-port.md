@@ -94,3 +94,13 @@ Sobald Sessions, Redirects und 401/403 dazukommen, kann ein statischer Export da
 5. `NEXT_PUBLIC_FIXED_NOW` bleibt in beiden Projekten gesetzt (deterministische Daten, S7).
 
 Beide Projekte laufen im `e2e`-Job von `quality.yml`; der Deploy-Workflow hängt weiterhin per `needs:` daran.
+
+### Stand 28.08.2026 — umgesetzt (S1–S4)
+
+Alle fünf Punkte sind umgesetzt, mit zwei Abweichungen, die sich in der Umsetzung als notwendig herausgestellt haben:
+
+- **Drei Projekte statt zwei:** `chromium` (Demo-Export, 12 Tests), `server-setup` (legt die `storageState`-Dateien an, 4 Tests) und `server` (8 negative Tests). Das Setup ist ein eigenes Projekt mit `dependencies`, damit sich kein Test selbst anmelden muss.
+- **`next start` statt `npm start` und ein eigenes Build-Verzeichnis:** beide Server starten parallel und würden sich sonst `.next` gegenseitig überschreiben. Der Server-Build läuft deshalb mit `NEXT_DIST_DIR=.next-server` (neu in `next.config.mjs`, ohne die Variable bleibt alles wie bisher).
+- **`page.request` taugt nicht für POST-Tests:** der `SameSite=Lax`-Cookie wird dabei nicht mitgeschickt, die Antwort wäre 401 statt der interessanten 403. Solche Anfragen laufen deshalb per `page.evaluate(fetch …)` aus der Seite heraus — das entspricht auch dem, was die App selbst tut.
+
+Die vier Testzugänge (owner/viewer in Organisation A, manager in B, Doppelmitglied in A+B) stehen in `tests/e2e/server/test-accounts.ts`. Dass die Tests wirklich etwas prüfen, wurde gegengeprüft: mit ausgehängtem Rollen- bzw. Mitgliedschafts-Guard werden genau die beiden zuständigen Tests rot.

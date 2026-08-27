@@ -31,6 +31,11 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Getrenntes Build-Verzeichnis, damit der statische Demo-Build und der
+  // Node-Server-Build nebeneinander existieren können (S1): die beiden
+  // Playwright-Projekte starten parallel und würden sich sonst gegenseitig
+  // .next überschreiben. Ohne NEXT_DIST_DIR bleibt alles wie bisher.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   output: isGitHubPages ? "export" : "standalone",
   basePath: isGitHubPages ? GITHUB_PAGES_BASE_PATH : undefined,
   assetPrefix: isGitHubPages ? `${GITHUB_PAGES_BASE_PATH}/` : undefined,
